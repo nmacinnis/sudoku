@@ -17,6 +17,9 @@ class Table(object):
             Sudoku.SIZE)]) + '\n'
         return linebreak.join([str(section_row) for section_row in self])
 
+    def __repr__(self):
+        return 'Table(section_rows=%s)' % repr(self.section_rows)
+
     def __iter__(self):
         return iter(self.section_rows)
 
@@ -47,6 +50,9 @@ class SectionRow(object):
 
     def __str__(self):
         return '\n'.join(['|'.join([str(section[r]) for section in self]) for r in xrange(Sudoku.SIZE)])
+
+    def __repr__(self):
+        return 'SectionRow(sections=%s)' % repr(self.sections)
 
     def __iter__(self):
         return iter(self.sections)
@@ -79,6 +85,9 @@ class Section(object):
     def __str__(self):
         return '\n'.join([str(row) for row in self])
 
+    def __repr__(self):
+        return 'Section(rows=%s)' % repr(self.rows)
+
     def __iter__(self):
         return iter(self.rows)
 
@@ -109,6 +118,9 @@ class Row(object):
 
     def __str__(self):
         return ''.join([str(cell) for cell in self])
+
+    def __repr__(self):
+        return 'Row(cells=%s)' % repr(self.cells)
 
     def __iter__(self):
         return iter(self.cells)
@@ -143,6 +155,9 @@ class Cell(object):
 
     def __str__(self):
         return str(self.value) if self.value else ' '
+
+    def __repr__(self):
+        return 'Cell(value=%s)' % self._value
 
     def __nonzero__(self):
         return bool(self._value)
@@ -183,3 +198,5 @@ if __name__ == '__main__':
     print nrow.solved()
 
     table.solve()
+
+    print repr(table)

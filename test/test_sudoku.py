@@ -72,7 +72,6 @@ class TestRow(unittest.TestCase):
         self.assertEquals('12345678.', str(row))
 
 
-
 class TestCell(unittest.TestCase):
     def test_cell_value_immutable(self):
         cell = Cell(value=1)

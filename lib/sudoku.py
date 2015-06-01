@@ -137,8 +137,8 @@ class SectionRow(object):
             cells = []
             # get row r from each section
             for section in self:
-                row = section[r]
-                cells.extend(row.cells)
+                row = section.rows()[r]
+                cells.extend(row)
                 #row.append(section[r])
             rows.append(Row(cells=cells))
         return rows
@@ -149,16 +149,18 @@ class Section(Soluble):
         super(Section, self).__init__(cells=cells)
 
     def __str__(self):
-        rows = [
-            self.cells[x + 1 : x + Sudoku.SIZE]
-            for x in xrange(Sudoku.SIZE)
-        ]
         return '\n'.join([
-            ''.join(row) for row in rows
+            ''.join([str(cell) for cell in row]) for row in self.rows()
         ])
 
     def __repr__(self):
         return 'Section(cells=%s)' % repr(self.cells)
+
+    def rows(self):
+        return [
+            self.cells[x + 1: x + Sudoku.SIZE]
+            for x in xrange(Sudoku.SIZE)
+        ]
 
 
 class Cell(object):

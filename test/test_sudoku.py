@@ -60,6 +60,18 @@ class TestRow(unittest.TestCase):
         assert unsolved_cell_a.potential_values == [8, 9]
         assert unsolved_cell_b.potential_values == [8, 9]
 
+    def test_str_solved(self):
+        cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
+        row = Row(cells)
+        self.assertEquals('123456789', str(row))
+
+    def test_str_unsolved(self):
+        cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2)]
+        cells.append(Cell())
+        row = Row(cells)
+        self.assertEquals('12345678.', str(row))
+
+
 
 class TestCell(unittest.TestCase):
     def test_cell_value_immutable(self):
@@ -114,3 +126,10 @@ class TestSection(unittest.TestCase):
 
         assert unsolved_cell_a.potential_values == [8, 9]
         assert unsolved_cell_b.potential_values == [8, 9]
+
+    def test_section_to_rows(self):
+        cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
+        section = Section(cells)
+        rows = section.rows()
+        for row in rows:
+            self.assertEquals(3, len(row))

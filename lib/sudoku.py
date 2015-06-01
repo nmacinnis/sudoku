@@ -54,6 +54,8 @@ class Soluble(object):
         self.cells = cells or [Cell() for cell in xrange(Sudoku.SIZE2)]
 
     def __str__(self):
+        for cell in self:
+            print repr(cell), repr(str(cell))
         return ''.join([str(cell) for cell in self])
 
     def __repr__(self):
@@ -103,7 +105,12 @@ class SectionRow(object):
         self.sections = sections or [Section() for _ in xrange(Sudoku.SIZE)]
 
     def __str__(self):
-        return '\n'.join(['|'.join([str(section[r]) for section in self]) for r in xrange(Sudoku.SIZE)])
+        return '\n'.join([
+            '|'.join([
+                ''.join(
+                    [str(cell) for cell in section.rows()[r]]
+                ) for section in self
+            ]) for r in xrange(Sudoku.SIZE)])
 
     def __repr__(self):
         return 'SectionRow(sections=%s)' % repr(self.sections)
@@ -135,11 +142,9 @@ class SectionRow(object):
         rows = []
         for r in xrange(Sudoku.SIZE):
             cells = []
-            # get row r from each section
             for section in self:
                 row = section.rows()[r]
                 cells.extend(row)
-                #row.append(section[r])
             rows.append(Row(cells=cells))
         return rows
 
@@ -158,7 +163,7 @@ class Section(Soluble):
 
     def rows(self):
         return [
-            self.cells[x + 1: x + Sudoku.SIZE]
+            self.cells[x: x + Sudoku.SIZE]
             for x in xrange(Sudoku.SIZE)
         ]
 
@@ -172,7 +177,7 @@ class Cell(object):
             self.potential_values = range(1, (Sudoku.SIZE2) + 1)
 
     def __str__(self):
-        return str(self.value) if self.value else ' '
+        return str(self.value) if self.value else '.'
 
     def __repr__(self):
         return 'Cell(value=%s)' % self._value

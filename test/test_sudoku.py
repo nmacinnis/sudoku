@@ -69,4 +69,3 @@ class TestSudoku(unittest.TestCase):
 
         assert unsolved_cell_a.potential_values == [8, 9]
         assert unsolved_cell_b.potential_values == [8, 9]
-

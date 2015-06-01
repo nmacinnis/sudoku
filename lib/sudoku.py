@@ -1,7 +1,6 @@
 #! /usr/bin/env python
 
 
-
 class Sudoku(object):
     SIZE = 3
     SIZE2 = 9
@@ -89,6 +88,7 @@ class Soluble(object):
                     solved_cells.append(unsolved_cell)
                     unsolved_cells.remove(unsolved_cell)
         return self.solved()
+
 
 class TableRow(Soluble):
     def __init__(self, cells=None):
@@ -244,7 +244,6 @@ class Cell(object):
             self.potential_values.remove(value)
         if len(self.potential_values) == 1:
             self.value = self.potential_values[0]
-
 
 
 if __name__ == '__main__':

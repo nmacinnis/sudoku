@@ -43,6 +43,46 @@ class Table(object):
             return True
         return False
 
+    def table_rows(self):
+        table_rows = []
+        for section_row in self:
+            table_rows.extend(section_row.table_rows())
+        return table_rows
+
+
+
+class TableRow(object):
+    def __init__(self, cells=None):
+        self.cells = cells or [Cell() for cell in xrange(Sudoku.SIZE2)]
+
+    def __str__(self):
+        return ''.join([str(cell) for cell in self])
+
+    def __repr__(self):
+        return 'TableRow(cells=%s)' % repr(self.cells)
+
+    def __iter__(self):
+        return iter(self.cells)
+
+    def __getitem__(self, index):
+        return self.cells[index]
+
+    def __setitem__(self, index, value):
+        if isinstance(value, Cell):
+            raise TypeError('can only set integer values')
+        self.cells[index].value = value
+
+    def __nonzero__(self):
+        return all(self)
+
+    def solved(self):
+        return all(self)
+
+    def solve(self):
+        if self.solved():
+            return True
+        return False
+
 
 class SectionRow(object):
     def __init__(self, sections=None):
@@ -76,6 +116,18 @@ class SectionRow(object):
         if self.solved():
             return True
         return False
+
+    def table_rows(self):
+        table_rows = []
+        for r in xrange(Sudoku.SIZE):
+            cells = []
+            # get row r from each section
+            for section in self:
+                row = section[r]
+                cells.extend(row.cells)
+                #table_row.append(section[r])
+            table_rows.append(TableRow(cells=cells))
+        return table_rows
 
 
 class Section(object):
@@ -198,5 +250,9 @@ if __name__ == '__main__':
     print nrow.solved()
 
     table.solve()
+
+    print section_row.table_rows()
+    for table_row in table.table_rows():
+        print 'row: ', repr(table_row)
 
     print repr(table)

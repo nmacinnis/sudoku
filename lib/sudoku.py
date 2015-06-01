@@ -1,16 +1,20 @@
 #! /usr/bin/env python
 
-SIZE = 3
+
+
+class Sudoku(object):
+    SIZE = 3
+    SIZE2 = 9
 
 
 class Table(object):
     def __init__(self, section_rows=None):
         self.section_rows = section_rows or [SectionRow()
-                                             for _ in xrange(SIZE)]
+                                             for _ in xrange(Sudoku.SIZE)]
 
     def __str__(self):
-        linebreak = '\n' + '+'.join([('-' * SIZE) for _ in xrange(
-            SIZE)]) + '\n'
+        linebreak = '\n' + '+'.join([('-' * Sudoku.SIZE) for _ in xrange(
+            Sudoku.SIZE)]) + '\n'
         return linebreak.join([str(section_row) for section_row in self])
 
     def __iter__(self):
@@ -39,10 +43,10 @@ class Table(object):
 
 class SectionRow(object):
     def __init__(self, sections=None):
-        self.sections = sections or [Section() for _ in xrange(SIZE)]
+        self.sections = sections or [Section() for _ in xrange(Sudoku.SIZE)]
 
     def __str__(self):
-        return '\n'.join(['|'.join([str(section[r]) for section in self]) for r in xrange(SIZE)])
+        return '\n'.join(['|'.join([str(section[r]) for section in self]) for r in xrange(Sudoku.SIZE)])
 
     def __iter__(self):
         return iter(self.sections)
@@ -70,7 +74,7 @@ class SectionRow(object):
 
 class Section(object):
     def __init__(self, rows=None):
-        self.rows = rows or [Row() for _ in xrange(SIZE)]
+        self.rows = rows or [Row() for _ in xrange(Sudoku.SIZE)]
 
     def __str__(self):
         return '\n'.join([str(row) for row in self])
@@ -101,7 +105,7 @@ class Section(object):
 
 class Row(object):
     def __init__(self, cells=None):
-        self.cells = cells or [Cell() for cell in xrange(SIZE)]
+        self.cells = cells or [Cell() for cell in xrange(Sudoku.SIZE)]
 
     def __str__(self):
         return ''.join([str(cell) for cell in self])
@@ -135,7 +139,7 @@ class Cell(object):
         if value:
             self.potential_values = [value]
         else:
-            self.potential_values = range(1, (SIZE * SIZE) + 1)
+            self.potential_values = range(1, (Sudoku.SIZE2) + 1)
 
     def __str__(self):
         return str(self.value) if self.value else ' '

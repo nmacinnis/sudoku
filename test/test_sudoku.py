@@ -1,23 +1,23 @@
 import unittest
 
-from sudoku import Sudoku, Cell, TableRow, Section
+from sudoku import Sudoku, Cell, Row, Section
 
 
 class TestSudoku(unittest.TestCase):
-    def test_table_row_solved(self):
+    def test_row_solved(self):
         cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
 
-        table_row = TableRow(cells)
+        row = Row(cells)
 
-        assert table_row.solved()
+        assert row.solved()
 
-    def test_table_row_not_solved(self):
+    def test_row_not_solved(self):
         cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2)]
         cells.append(Cell())
 
-        table_row = TableRow(cells)
+        row = Row(cells)
 
-        assert not table_row.solved()
+        assert not row.solved()
 
     def test_cell_value_immutable(self):
         cell = Cell(value=1)
@@ -29,43 +29,43 @@ class TestSudoku(unittest.TestCase):
             cell.clear_potential_value(i)
         assert cell.value == 9
 
-    def test_solve_table_row(self):
+    def test_solve_row(self):
         cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2)]
         unsolved_cell = Cell()
         cells.append(unsolved_cell)
 
-        table_row = TableRow(cells)
+        row = Row(cells)
 
-        print repr(table_row)
-        assert not table_row.solved()
-        assert table_row.solve()
+        print repr(row)
+        assert not row.solved()
+        assert row.solve()
         assert unsolved_cell.value == 9
 
-    def test_solve_table_row_backwards(self):
+    def test_solve_row_backwards(self):
         cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2)]
         unsolved_cell = Cell()
         cells.append(unsolved_cell)
         cells.reverse()
 
-        table_row = TableRow(cells)
+        row = Row(cells)
 
-        print repr(table_row)
-        assert not table_row.solved()
-        assert table_row.solve()
+        print repr(row)
+        assert not row.solved()
+        assert row.solve()
         assert unsolved_cell.value == 9
 
-    def test_solve_table_row_incomplete(self):
+    def test_solve_row_incomplete(self):
         cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 - 1)]
         unsolved_cell_a = Cell()
         cells.append(unsolved_cell_a)
         unsolved_cell_b = Cell()
         cells.append(unsolved_cell_b)
 
-        table_row = TableRow(cells)
+        row = Row(cells)
 
-        print repr(table_row)
-        assert not table_row.solved()
-        assert not table_row.solve()
+        print repr(row)
+        assert not row.solved()
+        assert not row.solve()
 
         assert unsolved_cell_a.potential_values == [8, 9]
         assert unsolved_cell_b.potential_values == [8, 9]

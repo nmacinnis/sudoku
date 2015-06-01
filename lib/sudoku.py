@@ -42,11 +42,11 @@ class Table(object):
             return True
         return False
 
-    def table_rows(self):
-        table_rows = []
+    def rows(self):
+        rows = []
         for section_row in self:
-            table_rows.extend(section_row.table_rows())
-        return table_rows
+            rows.extend(section_row.rows())
+        return rows
 
 
 class Soluble(object):
@@ -90,12 +90,12 @@ class Soluble(object):
         return self.solved()
 
 
-class TableRow(Soluble):
+class Row(Soluble):
     def __init__(self, cells=None):
-        super(TableRow, self).__init__(cells=cells)
+        super(Row, self).__init__(cells=cells)
 
     def __repr__(self):
-        return 'TableRow(cells=%s)' % repr(self.cells)
+        return 'Row(cells=%s)' % repr(self.cells)
 
 
 class SectionRow(object):
@@ -131,17 +131,17 @@ class SectionRow(object):
             return True
         return False
 
-    def table_rows(self):
-        table_rows = []
+    def rows(self):
+        rows = []
         for r in xrange(Sudoku.SIZE):
             cells = []
             # get row r from each section
             for section in self:
                 row = section[r]
                 cells.extend(row.cells)
-                #table_row.append(section[r])
-            table_rows.append(TableRow(cells=cells))
-        return table_rows
+                #row.append(section[r])
+            rows.append(Row(cells=cells))
+        return rows
 
 
 class Section(Soluble):
@@ -214,8 +214,8 @@ if __name__ == '__main__':
 
     table.solve()
 
-    print section_row.table_rows()
-    for table_row in table.table_rows():
-        print 'row: ', repr(table_row)
+    print section_row.rows()
+    for row in table.rows():
+        print 'row: ', repr(row)
 
     print repr(table)

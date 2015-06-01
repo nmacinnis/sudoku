@@ -1,6 +1,6 @@
 import unittest
 
-from sudoku import Sudoku, Cell, TableRow
+from sudoku import Sudoku, Cell, TableRow, Section
 
 
 class TestSudoku(unittest.TestCase):
@@ -66,6 +66,47 @@ class TestSudoku(unittest.TestCase):
         print repr(table_row)
         assert not table_row.solved()
         assert not table_row.solve()
+
+        assert unsolved_cell_a.potential_values == [8, 9]
+        assert unsolved_cell_b.potential_values == [8, 9]
+
+    def test_solve_section(self):
+        cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2)]
+        unsolved_cell = Cell()
+        cells.append(unsolved_cell)
+
+        section = Section(cells)
+
+        print repr(section)
+        assert not section.solved()
+        assert section.solve()
+        assert unsolved_cell.value == 9
+
+    def test_solve_section_backwards(self):
+        cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2)]
+        unsolved_cell = Cell()
+        cells.append(unsolved_cell)
+        cells.reverse()
+
+        section = Section(cells)
+
+        print repr(section)
+        assert not section.solved()
+        assert section.solve()
+        assert unsolved_cell.value == 9
+
+    def test_solve_section_incomplete(self):
+        cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 - 1)]
+        unsolved_cell_a = Cell()
+        cells.append(unsolved_cell_a)
+        unsolved_cell_b = Cell()
+        cells.append(unsolved_cell_b)
+
+        section = Section(cells)
+
+        print repr(section)
+        assert not section.solved()
+        assert not section.solve()
 
         assert unsolved_cell_a.potential_values == [8, 9]
         assert unsolved_cell_b.potential_values == [8, 9]

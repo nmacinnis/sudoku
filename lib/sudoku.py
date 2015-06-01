@@ -144,71 +144,21 @@ class SectionRow(object):
         return table_rows
 
 
-class Section(object):
-    def __init__(self, rows=None):
-        self.rows = rows or [Row() for _ in xrange(Sudoku.SIZE)]
-
-    def __str__(self):
-        return '\n'.join([str(row) for row in self])
-
-    def __repr__(self):
-        return 'Section(rows=%s)' % repr(self.rows)
-
-    def __iter__(self):
-        return iter(self.rows)
-
-    def __getitem__(self, index):
-        return self.rows[index]
-
-    def __setitem__(self, index, row):
-        if isinstance(row, Row):
-            self.rows[index] = row
-        else:
-            raise TypeError
-
-    def __nonzero__(self):
-        return all(self)
-
-    def solved(self):
-        return all(self)
-
-    def solve(self):
-        if self.solved():
-            return True
-        return False
-
-
-class Row(object):
+class Section(Soluble):
     def __init__(self, cells=None):
-        self.cells = cells or [Cell() for cell in xrange(Sudoku.SIZE)]
+        super(Section, self).__init__(cells=cells)
 
     def __str__(self):
-        return ''.join([str(cell) for cell in self])
+        rows = [
+            self.cells[x + 1 : x + Sudoku.SIZE]
+            for x in xrange(Sudoku.SIZE)
+        ]
+        return '\n'.join([
+            ''.join(row) for row in rows
+        ])
 
     def __repr__(self):
-        return 'Row(cells=%s)' % repr(self.cells)
-
-    def __iter__(self):
-        return iter(self.cells)
-
-    def __getitem__(self, index):
-        return self.cells[index]
-
-    def __setitem__(self, index, value):
-        if isinstance(value, Cell):
-            raise TypeError('can only set integer values')
-        self.cells[index].value = value
-
-    def __nonzero__(self):
-        return all(self)
-
-    def solved(self):
-        return all(self)
-
-    def solve(self):
-        if self.solved():
-            return True
-        return False
+        return 'Section(cells=%s)' % repr(self.cells)
 
 
 class Cell(object):
@@ -249,9 +199,6 @@ class Cell(object):
 if __name__ == '__main__':
     cell = Cell()
     print 'cell', cell
-    row = Row()
-    print 'row', row
-    print row.solved()
     section = Section()
     print 'section'
     print section
@@ -264,10 +211,6 @@ if __name__ == '__main__':
     print 'table'
     print table
     print table.solved()
-
-    nrow = Row(cells=[Cell(value=x) for x in xrange(1, 4)])
-    print nrow
-    print nrow.solved()
 
     table.solve()
 

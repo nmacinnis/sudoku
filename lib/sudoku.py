@@ -50,8 +50,7 @@ class Table(object):
         return table_rows
 
 
-
-class TableRow(object):
+class Soluble(object):
     def __init__(self, cells=None):
         self.cells = cells or [Cell() for cell in xrange(Sudoku.SIZE2)]
 
@@ -59,7 +58,7 @@ class TableRow(object):
         return ''.join([str(cell) for cell in self])
 
     def __repr__(self):
-        return 'TableRow(cells=%s)' % repr(self.cells)
+        return 'Soluble(cells=%s)' % repr(self.cells)
 
     def __iter__(self):
         return iter(self.cells)
@@ -81,7 +80,22 @@ class TableRow(object):
     def solve(self):
         if self.solved():
             return True
-        return False
+        solved_cells = [cell for cell in self if cell]
+        unsolved_cells = [cell for cell in self if not cell]
+        for solved_cell in solved_cells:
+            for unsolved_cell in unsolved_cells:
+                unsolved_cell.clear_potential_value(solved_cell.value)
+                if unsolved_cell:
+                    solved_cells.append(unsolved_cell)
+                    unsolved_cells.remove(unsolved_cell)
+        return self.solved()
+
+class TableRow(Soluble):
+    def __init__(self, cells=None):
+        super(TableRow, self).__init__(cells=cells)
+
+    def __repr__(self):
+        return 'TableRow(cells=%s)' % repr(self.cells)
 
 
 class SectionRow(object):
@@ -224,6 +238,13 @@ class Cell(object):
             raise Exception('cell value already set')
         self._value = value
         self.potential_values = []
+
+    def clear_potential_value(self, value):
+        if value in self.potential_values:
+            self.potential_values.remove(value)
+        if len(self.potential_values) == 1:
+            self.value = self.potential_values[0]
+
 
 
 if __name__ == '__main__':

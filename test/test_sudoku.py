@@ -1,6 +1,6 @@
 import unittest
 
-from sudoku import Sudoku, Cell, Row, Section
+from sudoku import Sudoku, Cell, Row, Section, _split
 
 
 class TestRow(unittest.TestCase):
@@ -129,6 +129,7 @@ class TestSection(unittest.TestCase):
     def test_section_to_rows(self):
         cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
         section = Section(cells)
-        rows = section.rows()
+        rows = _split(section)
+        #rows = section.rows()
         for row in rows:
             self.assertEquals(3, len(row))

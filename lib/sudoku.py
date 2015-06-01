@@ -1,33 +1,43 @@
 #! /usr/bin/env python
 
 
+
+def _split(l):
+    return [
+        l[x: x + Sudoku.SIZE]
+        for x in xrange(Sudoku.SIZE)
+    ]
+
+
 class Sudoku(object):
     SIZE = 3
     SIZE2 = 9
 
 
 class Table(object):
-    def __init__(self, section_rows=None):
-        self.section_rows = section_rows or [SectionRow()
-                                             for _ in xrange(Sudoku.SIZE)]
+    def __init__(self, sections=None):
+        self.sections = sections or [Section() for _ in xrange(Sudoku.SIZE)]
 
     def __str__(self):
-        linebreak = '\n' + '+'.join([('-' * Sudoku.SIZE) for _ in xrange(
-            Sudoku.SIZE)]) + '\n'
-        return linebreak.join([str(section_row) for section_row in self])
+        divider = '\n' + '+'.join(_split('-' * Sudoku.SIZE2)) + '\n'
+        return divider.join([
+            '\n'.join([
+                '|'.join(_split(str(row))) for row in multirow
+            ]) for multirow in _split(self.rows())
+        ])
 
     def __repr__(self):
-        return 'Table(section_rows=%s)' % repr(self.section_rows)
+        return 'Table(sections=%s)' % repr(self.sections)
 
     def __iter__(self):
-        return iter(self.section_rows)
+        return iter(self.sections)
 
     def __getitem__(self, index):
-        return self.section_rows[index]
+        return self.sections[index]
 
-    def __setitem__(self, index, section_row):
-        if isinstance(section_row, SectionRow):
-            self.section_rows[index] = section_row
+    def __setitem__(self, index, section):
+        if isinstance(section, Section):
+            self.sections[index] = section
         else:
             raise TypeError
 
@@ -44,8 +54,13 @@ class Table(object):
 
     def rows(self):
         rows = []
-        for section_row in self:
-            rows.extend(section_row.rows())
+        for section_row in _split(self):
+            for r in xrange(Sudoku.SIZE):
+                cells = []
+                for section in section_row:
+                    row = _split(section)[r]
+                    cells.extend(row)
+                rows.append(Row(cells=cells))
         return rows
 
 
@@ -54,8 +69,6 @@ class Soluble(object):
         self.cells = cells or [Cell() for cell in xrange(Sudoku.SIZE2)]
 
     def __str__(self):
-        for cell in self:
-            print repr(cell), repr(str(cell))
         return ''.join([str(cell) for cell in self])
 
     def __repr__(self):
@@ -92,6 +105,14 @@ class Soluble(object):
         return self.solved()
 
 
+class Splittable(object):
+    def split(self):
+        return [
+            self[x: x + Sudoku.SIZE]
+            for x in xrange(Sudoku.SIZE)
+        ]
+
+
 class Row(Soluble):
     def __init__(self, cells=None):
         super(Row, self).__init__(cells=cells)
@@ -99,73 +120,17 @@ class Row(Soluble):
     def __repr__(self):
         return 'Row(cells=%s)' % repr(self.cells)
 
-
-class SectionRow(object):
-    def __init__(self, sections=None):
-        self.sections = sections or [Section() for _ in xrange(Sudoku.SIZE)]
-
-    def __str__(self):
-        return '\n'.join([
-            '|'.join([
-                ''.join(
-                    [str(cell) for cell in section.rows()[r]]
-                ) for section in self
-            ]) for r in xrange(Sudoku.SIZE)])
-
-    def __repr__(self):
-        return 'SectionRow(sections=%s)' % repr(self.sections)
-
-    def __iter__(self):
-        return iter(self.sections)
-
-    def __getitem__(self, index):
-        return self.sections[index]
-
-    def __setitem__(self, index, section):
-        if isinstance(section, Section):
-            self.sections[index] = section
-        else:
-            raise TypeError
-
-    def __nonzero__(self):
-        return all(self)
-
-    def solved(self):
-        return all(self)
-
-    def solve(self):
-        if self.solved():
-            return True
-        return False
-
-    def rows(self):
-        rows = []
-        for r in xrange(Sudoku.SIZE):
-            cells = []
-            for section in self:
-                row = section.rows()[r]
-                cells.extend(row)
-            rows.append(Row(cells=cells))
-        return rows
-
-
 class Section(Soluble):
     def __init__(self, cells=None):
         super(Section, self).__init__(cells=cells)
 
     def __str__(self):
         return '\n'.join([
-            ''.join([str(cell) for cell in row]) for row in self.rows()
+            ''.join([str(cell) for cell in row]) for row in _split(self)
         ])
 
     def __repr__(self):
         return 'Section(cells=%s)' % repr(self.cells)
-
-    def rows(self):
-        return [
-            self.cells[x: x + Sudoku.SIZE]
-            for x in xrange(Sudoku.SIZE)
-        ]
 
 
 class Cell(object):
@@ -210,19 +175,16 @@ if __name__ == '__main__':
     print 'section'
     print section
     print section.solved()
-    section_row = SectionRow()
-    print 'section row'
-    print section_row
-    print section_row.solved()
     table = Table()
     print 'table'
     print table
-    print table.solved()
+    print table.rows()
+    #print table.solved()
 
-    table.solve()
+    #table.solve()
 
-    print section_row.rows()
-    for row in table.rows():
-        print 'row: ', repr(row)
+    #print section_row.rows()
+    #for row in table.rows():
+    #    print 'row: ', repr(row)
 
-    print repr(table)
+    #print repr(table)

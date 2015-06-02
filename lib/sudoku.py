@@ -61,12 +61,6 @@ class Table(object):
     def __getitem__(self, index):
         return self.cells[index]
 
-    def __setitem__(self, index, row):
-        if isinstance(row, Row):
-            self.cells[index] = row
-        else:
-            raise TypeError
-
     def __nonzero__(self):
         return all(self)
 

@@ -1,6 +1,6 @@
 import unittest
 
-from sudoku import Sudoku, Cell, Row, Section, Table, _split
+from sudoku import Sudoku, Cell, Soluble, Row, Column, Section, Table
 
 
 class TestTable(unittest.TestCase):
@@ -46,73 +46,73 @@ class TestTable(unittest.TestCase):
         assert sections[0][3] is table[1][0]
 
 
-class TestRow(unittest.TestCase):
-    def test_row_solved(self):
+class TestSoluble(unittest.TestCase):
+    def test_soluble_solved(self):
         cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
 
-        row = Row(cells)
+        soluble = Soluble(cells)
 
-        assert row.solved()
+        assert soluble.solved()
 
-    def test_row_not_solved(self):
+    def test_soluble_not_solved(self):
         cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2)]
         cells.append(Cell())
 
-        row = Row(cells)
+        soluble = Soluble(cells)
 
-        assert not row.solved()
+        assert not soluble.solved()
 
-    def test_solve_row(self):
+    def test_solve_soluble(self):
         cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2)]
         unsolved_cell = Cell()
         cells.append(unsolved_cell)
 
-        row = Row(cells)
+        soluble = Soluble(cells)
 
-        print repr(row)
-        assert not row.solved()
-        assert row.solve()
+        print repr(soluble)
+        assert not soluble.solved()
+        assert soluble.solve()
         assert unsolved_cell.value == 9
 
-    def test_solve_row_backwards(self):
+    def test_solve_soluble_backwards(self):
         cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2)]
         unsolved_cell = Cell()
         cells.append(unsolved_cell)
         cells.reverse()
 
-        row = Row(cells)
+        soluble = Soluble(cells)
 
-        print repr(row)
-        assert not row.solved()
-        assert row.solve()
+        print repr(soluble)
+        assert not soluble.solved()
+        assert soluble.solve()
         assert unsolved_cell.value == 9
 
-    def test_solve_row_incomplete(self):
+    def test_solve_soluble_incomplete(self):
         cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 - 1)]
         unsolved_cell_a = Cell()
         cells.append(unsolved_cell_a)
         unsolved_cell_b = Cell()
         cells.append(unsolved_cell_b)
 
-        row = Row(cells)
+        soluble = Soluble(cells)
 
-        print repr(row)
-        assert not row.solved()
-        assert not row.solve()
+        print repr(soluble)
+        assert not soluble.solved()
+        assert not soluble.solve()
 
         assert unsolved_cell_a.potential_values == [8, 9]
         assert unsolved_cell_b.potential_values == [8, 9]
 
     def test_str_solved(self):
         cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
-        row = Row(cells)
-        self.assertEquals('123456789', str(row))
+        soluble = Soluble(cells)
+        self.assertEquals('123456789', str(soluble))
 
     def test_str_unsolved(self):
         cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2)]
         cells.append(Cell())
-        row = Row(cells)
-        self.assertEquals('12345678.', str(row))
+        soluble = Soluble(cells)
+        self.assertEquals('12345678.', str(soluble))
 
 
 class TestCell(unittest.TestCase):
@@ -127,52 +127,29 @@ class TestCell(unittest.TestCase):
         assert cell.value == 9
 
 
+class TestRow(unittest.TestCase):
+    def test_str(self):
+        cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
+        row = Row(cells)
+        self.assertEquals('123456789', str(row))
+
+
+class TestColumn(unittest.TestCase):
+    def test_str(self):
+        cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
+        column = Column(cells)
+        self.assertEquals('1\n2\n3\n4\n5\n6\n7\n8\n9', str(column))
+
+
 class TestSection(unittest.TestCase):
-    def test_solve_section(self):
-        cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2)]
-        unsolved_cell = Cell()
-        cells.append(unsolved_cell)
-
+    def test_str(self):
+        cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
         section = Section(cells)
-
-        print repr(section)
-        assert not section.solved()
-        assert section.solve()
-        assert unsolved_cell.value == 9
-
-    def test_solve_section_backwards(self):
-        cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2)]
-        unsolved_cell = Cell()
-        cells.append(unsolved_cell)
-        cells.reverse()
-
-        section = Section(cells)
-
-        print repr(section)
-        assert not section.solved()
-        assert section.solve()
-        assert unsolved_cell.value == 9
-
-    def test_solve_section_incomplete(self):
-        cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 - 1)]
-        unsolved_cell_a = Cell()
-        cells.append(unsolved_cell_a)
-        unsolved_cell_b = Cell()
-        cells.append(unsolved_cell_b)
-
-        section = Section(cells)
-
-        print repr(section)
-        assert not section.solved()
-        assert not section.solve()
-
-        assert unsolved_cell_a.potential_values == [8, 9]
-        assert unsolved_cell_b.potential_values == [8, 9]
+        self.assertEquals('123\n456\n789', str(section))
 
     def test_section_to_rows(self):
         cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
         section = Section(cells)
-        rows = _split(section)
         rows = section.to_rows()
         for row in rows:
             self.assertEquals(3, len(row))

@@ -4,10 +4,15 @@
 
 def _split(l):
     return [
-        l[x: x + Sudoku.SIZE]
+        l[x * Sudoku.SIZE: (x + 1) * Sudoku.SIZE]
         for x in xrange(Sudoku.SIZE)
     ]
 
+def _splitvertical(l):
+    return [
+        l[x::Sudoku.SIZE]
+        for x in xrange(Sudoku.SIZE)
+    ]
 
 class Sudoku(object):
     SIZE = 3
@@ -16,7 +21,7 @@ class Sudoku(object):
 
 class Table(object):
     def __init__(self, sections=None):
-        self.sections = sections or [Section() for _ in xrange(Sudoku.SIZE)]
+        self.sections = sections or [Section() for _ in xrange(Sudoku.SIZE2)]
 
     def __str__(self):
         divider = '\n' + '+'.join(_split('-' * Sudoku.SIZE2)) + '\n'
@@ -63,6 +68,17 @@ class Table(object):
                 rows.append(Row(cells=cells))
         return rows
 
+    def columns(self):
+        columns = []
+        for section_column in _splitvertical(self):
+            for c in xrange(Sudoku.SIZE):
+                cells = []
+                for section in section_column:
+                    column = section.to_columns()[c]
+                    cells.extend(column)
+                columns.append(Column(cells))
+        return columns
+
 
 class Soluble(object):
     def __init__(self, cells=None):
@@ -105,20 +121,21 @@ class Soluble(object):
         return self.solved()
 
 
-class Splittable(object):
-    def split(self):
-        return [
-            self[x: x + Sudoku.SIZE]
-            for x in xrange(Sudoku.SIZE)
-        ]
-
-
 class Row(Soluble):
     def __init__(self, cells=None):
         super(Row, self).__init__(cells=cells)
 
     def __repr__(self):
         return 'Row(cells=%s)' % repr(self.cells)
+
+
+class Column(Soluble):
+    def __init__(self, cells=None):
+        super(Column, self).__init__(cells=cells)
+
+    def __repr__(self):
+        return 'Column(cells=%s)' % repr(self.cells)
+
 
 class Section(Soluble):
     def __init__(self, cells=None):
@@ -131,6 +148,18 @@ class Section(Soluble):
 
     def __repr__(self):
         return 'Section(cells=%s)' % repr(self.cells)
+
+    def to_rows(self):
+        return [
+            self[x * Sudoku.SIZE: (x + 1) * Sudoku.SIZE]
+            for x in xrange(Sudoku.SIZE)
+        ]
+
+    def to_columns(self):
+        return [
+            self[x::Sudoku.SIZE]
+            for x in xrange(Sudoku.SIZE)
+        ]
 
 
 class Cell(object):
@@ -187,4 +216,4 @@ if __name__ == '__main__':
     #for row in table.rows():
     #    print 'row: ', repr(row)
 
-    #print repr(table)
+    print repr(table)

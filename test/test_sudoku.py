@@ -1,7 +1,38 @@
 import unittest
 
-from sudoku import Sudoku, Cell, Row, Section, _split
+from sudoku import Sudoku, Cell, Row, Section, Table, _split
 
+
+class TestTable(unittest.TestCase):
+    def test_str(self):
+        exp = \
+            "...|...|...\n" \
+            "...|...|...\n" \
+            "...|...|...\n" \
+            "---+---+---\n" \
+            "...|...|...\n" \
+            "...|...|...\n" \
+            "...|...|...\n" \
+            "---+---+---\n" \
+            "...|...|...\n" \
+            "...|...|...\n" \
+            "...|...|..."
+        res = str(Table())
+        self.assertEquals(exp, res)
+
+    def test_rows(self):
+        table = Table()
+        rows = table.rows()
+        assert rows[0][0] is table[0][0]
+        assert rows[0][1] is table[0][1]
+        assert rows[1][0] is table[0][3]
+
+    def test_columns(self):
+        table = Table()
+        columns = table.columns()
+        assert columns[0][0] is table[0][0]
+        assert columns[0][1] is table[0][3]
+        assert columns[1][0] is table[0][1]
 
 class TestRow(unittest.TestCase):
     def test_row_solved(self):
@@ -130,6 +161,21 @@ class TestSection(unittest.TestCase):
         cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
         section = Section(cells)
         rows = _split(section)
-        #rows = section.rows()
+        rows = section.to_rows()
         for row in rows:
             self.assertEquals(3, len(row))
+
+        self.assertEquals(1, rows[0][0].value)
+        self.assertEquals(2, rows[0][1].value)
+        self.assertEquals(3, rows[0][2].value)
+
+    def test_section_to_columns(self):
+        cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
+        section = Section(cells)
+        columns = section.to_columns()
+        for column in columns:
+            self.assertEquals(3, len(column))
+
+        self.assertEquals(1, columns[0][0].value)
+        self.assertEquals(4, columns[0][1].value)
+        self.assertEquals(7, columns[0][2].value)

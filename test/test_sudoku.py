@@ -3,6 +3,37 @@ import unittest
 from sudoku import Sudoku, Cell, Soluble, Row, Column, Section, Table
 
 
+def _string_to_table(st):
+    st.replace('|', '')
+    st.replace('-', '')
+    st.replace('+', '')
+    table = Table()
+    lines = st.split('\n')
+    for i, line in enumerate(lines):
+        for j, character in enumerate(line):
+            if character.isdigit():
+                table.set(i, j, int(character))
+    return table
+
+class TestGames(unittest.TestCase):
+    def test_game_01(self):
+        table = _string_to_table(
+            '...|...|...\n' \
+            '...|...|...\n' \
+            '...|...|...\n' \
+            '---+---+---\n' \
+            '...|...|...\n' \
+            '...|...|...\n' \
+            '...|...|...\n' \
+            '---+---+---\n' \
+            '...|...|...\n' \
+            '...|...|...\n' \
+            '...|...|...'
+        )
+
+        assert not table.solved()
+
+
 class TestTable(unittest.TestCase):
     def test_str(self):
         exp = \

@@ -65,12 +65,24 @@ class Table(object):
         return all(self)
 
     def solved(self):
-        return all(self)
+        return all(self.rows)
 
     def solve(self):
         if self.solved():
             return True
         return False
+
+    def set(self, row, column, value):
+        cell = self[row][column]
+        cell.value = value
+        affected_cells = cell.mates
+        while affected_cells:
+            currently_affected_cells = set(affected_cells)
+            for cell in currently_affected_cells:
+                if cell.clear_potential_value(value):
+                    affected_cells.add(cell.mates)
+                else:
+                    affected_cells.remove(cell)
 
 
 class Soluble(object):
@@ -193,10 +205,14 @@ class Cell(object):
         self.potential_values = []
 
     def clear_potential_value(self, value):
-        if value in self.potential_values:
-            self.potential_values.remove(value)
+        if value not in self.potential_values:
+            return False
+        self.potential_values.remove(value)
         if len(self.potential_values) == 1:
             self.value = self.potential_values[0]
+            return True
+        else:
+            return False
 
     @property
     def row(self):
@@ -221,6 +237,10 @@ class Cell(object):
     @section.setter
     def section(self, section):
         self._section_ref = weakref.ref(section)
+
+    @property
+    def mates(self):
+        return set(self.row.cells + self.column.cells + self.section.cells)
 
 
 if __name__ == '__main__':

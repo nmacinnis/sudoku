@@ -109,6 +109,9 @@ class Soluble(object):
     def __nonzero__(self):
         return all(self)
 
+    def index(self, cell):
+        return self.cells.index(cell)
+
     def solved(self):
         return all(self)
 
@@ -183,6 +186,9 @@ class Cell(object):
             self.potential_values = [value]
         else:
             self.potential_values = range(1, (Sudoku.SIZE2) + 1)
+        self._row_ref = lambda: None
+        self._column_ref = lambda: None
+        self._section_ref = lambda: None
 
     def __str__(self):
         return str(self.value) if self.value else '.'
@@ -200,7 +206,22 @@ class Cell(object):
     @value.setter
     def value(self, value):
         if self._value:
-            raise Exception('cell value already set')
+            raise Exception('cell value already set to %s (attempted to set %s)' % (self._value, value))
+        elif value not in self.potential_values:
+            raise Exception('invalid value %s (potential values are %s)' % (value, repr(self.potential_values)))
+        else:
+            if self.row is not None:
+                for cell in self.row:
+                    if value == cell.value:
+                        raise Exception('cannot set %s (already set in row)' % value)
+            if self.column is not None:
+                for cell in self.column:
+                    if value == cell.value:
+                        raise Exception('cannot set %s (already set in column)' % value)
+            if self.section is not None:
+                for cell in self.section:
+                    if value == cell.value:
+                        raise Exception('cannot set %s (already set in section)' % value)
         self._value = value
         self.potential_values = []
 

@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-
+import weakref
 
 def _split(l):
     return [
@@ -117,6 +117,8 @@ class Soluble(object):
 class Row(Soluble):
     def __init__(self, cells=None):
         super(Row, self).__init__(cells=cells)
+        for cell in cells:
+            cell.row = self
 
     def __repr__(self):
         return 'Row(cells=%s)' % repr(self.cells)
@@ -125,6 +127,8 @@ class Row(Soluble):
 class Column(Soluble):
     def __init__(self, cells=None):
         super(Column, self).__init__(cells=cells)
+        for cell in cells:
+            cell.column = self
 
     def __str__(self):
         return '\n'.join([str(cell) for cell in self])
@@ -136,6 +140,8 @@ class Column(Soluble):
 class Section(Soluble):
     def __init__(self, cells=None):
         super(Section, self).__init__(cells=cells)
+        for cell in cells:
+            cell.section = self
 
     def __str__(self):
         return '\n'.join([
@@ -192,6 +198,30 @@ class Cell(object):
         if len(self.potential_values) == 1:
             self.value = self.potential_values[0]
 
+    @property
+    def row(self):
+        return self._row_ref()
+
+    @row.setter
+    def row(self, row):
+        self._row_ref = weakref.ref(row)
+
+    @property
+    def column(self):
+        return self._column_ref()
+
+    @column.setter
+    def column(self, column):
+        self._column_ref = weakref.ref(column)
+
+    @property
+    def section(self):
+        return self._section_ref()
+
+    @section.setter
+    def section(self, section):
+        self._section_ref = weakref.ref(section)
+
 
 if __name__ == '__main__':
     cell = Cell()
@@ -204,3 +234,4 @@ if __name__ == '__main__':
     print 'section\n', section
     table = Table()
     print 'table\n', table
+

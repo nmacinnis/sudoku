@@ -133,6 +133,13 @@ class TestRow(unittest.TestCase):
         row = Row(cells)
         self.assertEquals('123456789', str(row))
 
+    def test_weakref(self):
+        cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
+        row = Row(cells)
+        assert cells[0].row is row
+        del row
+        assert cells[0].row is None
+
 
 class TestColumn(unittest.TestCase):
     def test_str(self):
@@ -140,12 +147,26 @@ class TestColumn(unittest.TestCase):
         column = Column(cells)
         self.assertEquals('1\n2\n3\n4\n5\n6\n7\n8\n9', str(column))
 
+    def test_weakref(self):
+        cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
+        column = Column(cells)
+        assert cells[0].column is column
+        del column
+        assert cells[0].column is None
+
 
 class TestSection(unittest.TestCase):
     def test_str(self):
         cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
         section = Section(cells)
         self.assertEquals('123\n456\n789', str(section))
+
+    def test_weakref(self):
+        cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
+        section = Section(cells)
+        assert cells[0].section is section
+        del section
+        assert cells[0].section is None
 
     def test_section_to_rows(self):
         cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]

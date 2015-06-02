@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 import weakref
 
+
 def _split(l):
     return [
         l[x * Sudoku.SIZE: (x + 1) * Sudoku.SIZE]
@@ -64,6 +65,11 @@ class Table(object):
     def __nonzero__(self):
         return all(self)
 
+    def index(self, cell):
+        row_index = self.rows.index(cell.row)
+        column_index = self.columns.index(cell.column)
+        return row_index, column_index
+
     def solved(self):
         return all(self.rows)
 
@@ -75,14 +81,19 @@ class Table(object):
     def set(self, row, column, value):
         cell = self[row][column]
         cell.value = value
-        affected_cells = cell.mates
+        affected_cells = [(value, cell.mates)]
         while affected_cells:
-            currently_affected_cells = set(affected_cells)
+            value, currently_affected_cells = affected_cells.pop()
+            print 'value', value, 'affected cells', currently_affected_cells
             for cell in currently_affected_cells:
+                print 'processing', cell, 'at index', self.index(cell)
                 if cell.clear_potential_value(value):
-                    affected_cells.update(cell.mates)
-                else:
-                    affected_cells.remove(cell)
+                    print 'set %s, %s to %s' % (
+                        cell.column.index(cell),
+                        cell.row.index(cell),
+                        cell.value
+                    )
+                    affected_cells.append((cell.value, cell.mates))
 
 
 class Soluble(object):
@@ -208,20 +219,24 @@ class Cell(object):
         if self._value:
             raise Exception('cell value already set to %s (attempted to set %s)' % (self._value, value))
         elif value not in self.potential_values:
-            raise Exception('invalid value %s (potential values are %s)' % (value, repr(self.potential_values)))
+            raise Exception('invalid value %s (potential values are %s)' %
+                            (value, repr(self.potential_values)))
         else:
             if self.row is not None:
                 for cell in self.row:
                     if value == cell.value:
-                        raise Exception('cannot set %s (already set in row)' % value)
+                        raise Exception(
+                            'cannot set %s (already set in row)' % value)
             if self.column is not None:
                 for cell in self.column:
                     if value == cell.value:
-                        raise Exception('cannot set %s (already set in column)' % value)
+                        raise Exception(
+                            'cannot set %s (already set in column)' % value)
             if self.section is not None:
                 for cell in self.section:
                     if value == cell.value:
-                        raise Exception('cannot set %s (already set in section)' % value)
+                        raise Exception(
+                            'cannot set %s (already set in section)' % value)
         self._value = value
         self.potential_values = []
 
@@ -275,4 +290,3 @@ if __name__ == '__main__':
     print 'section\n', section
     table = Table()
     print 'table\n', table
-

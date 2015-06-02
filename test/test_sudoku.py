@@ -16,41 +16,44 @@ def _string_to_table(st):
                 print i, j, character
                 try:
                     table.set(i, j, int(character))
-                except Exception:
+                except Exception, e:
+                    print e
                     pass
     return table
+
 
 class TestGames(unittest.TestCase):
     def test_game_00(self):
         table = _string_to_table(
-            '...|...|...\n' \
-            '...|...|...\n' \
-            '...|...|...\n' \
-            '---+---+---\n' \
-            '...|...|...\n' \
-            '...|...|...\n' \
-            '...|...|...\n' \
-            '---+---+---\n' \
-            '...|...|...\n' \
-            '...|...|...\n' \
+            '...|...|...\n'
+            '...|...|...\n'
+            '...|...|...\n'
+            '---+---+---\n'
+            '...|...|...\n'
+            '...|...|...\n'
+            '...|...|...\n'
+            '---+---+---\n'
+            '...|...|...\n'
+            '...|...|...\n'
             '...|...|...'
         )
 
         assert not table.solved()
 
+    @unittest.SkipTest
     def test_game_01(self):
         table = _string_to_table(
-            '123|...|689\n' \
-            '456|123|...\n' \
-            '789|...|123\n' \
-            '---+---+---\n' \
-            '312|978|...\n' \
-            '...|312|..7\n' \
-            '...|645|312\n' \
-            '---+---+---\n' \
-            '231|.5.|897\n' \
-            '.9.|231|564\n' \
-            '54.|.6.|231'
+            '123|...|689\n'
+            '456|1..|...\n'
+            '78.|...|124\n'
+            '---+---+---\n'
+            '312|978|...\n'
+            '...|312|...\n'
+            '...|6..|912\n'
+            '---+---+---\n'
+            '231|...|...\n'
+            '...|231|...\n'
+            '...|...|2.1'
         )
 
         print table
@@ -60,6 +63,29 @@ class TestGames(unittest.TestCase):
                 for cell in row:
                     print cell, cell.potential_values
 
+        print table
+        assert table.solved()
+
+
+class Test2x2(unittest.TestCase):
+    def setUp(self):
+        Sudoku.SIZE = 2
+        Sudoku.SIZE2 = 4
+
+    def tearDown(self):
+        Sudoku.SIZE = 3
+        Sudoku.SIZE2 = 9
+
+    def test_2x2_game(self):
+        Sudoku.SIZE = 2
+        Sudoku.SIZE2 = 4
+        table = _string_to_table(
+            '12|3.\n'
+            '3.|1.\n'
+            '--+--\n'
+            '2.|..\n'
+            '..|.3'
+        )
         print table
         assert table.solved()
 
@@ -171,23 +197,28 @@ class TestTable(unittest.TestCase):
         section_0 = table.sections[0]
         for cell in section_0:
             if cell not in set_cells:
-                self.assertEquals(potential_values_section_0, cell.potential_values)
+                self.assertEquals(
+                    potential_values_section_0, cell.potential_values)
         row_0 = table.rows[0]
         for cell in row_0:
             if cell not in set_cells and cell not in section_0:
-                self.assertEquals(potential_values_row_0_column_0, cell.potential_values)
+                self.assertEquals(
+                    potential_values_row_0_column_0, cell.potential_values)
         column_0 = table.columns[0]
         for cell in column_0:
             if cell not in set_cells and cell not in section_0:
-                self.assertEquals(potential_values_row_0_column_0, cell.potential_values)
+                self.assertEquals(
+                    potential_values_row_0_column_0, cell.potential_values)
         row_1 = table.rows[1]
         for cell in row_1:
             if cell not in set_cells and cell not in section_0:
-                self.assertEquals(potential_values_row_1_column_1, cell.potential_values)
+                self.assertEquals(
+                    potential_values_row_1_column_1, cell.potential_values)
         column_1 = table.columns[1]
         for cell in column_1:
             if cell not in set_cells and cell not in section_0:
-                self.assertEquals(potential_values_row_1_column_1, cell.potential_values)
+                self.assertEquals(
+                    potential_values_row_1_column_1, cell.potential_values)
 
     def test_solve_section_0(self):
         table = Table()

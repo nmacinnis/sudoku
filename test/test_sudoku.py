@@ -4,19 +4,24 @@ from sudoku import Sudoku, Cell, Soluble, Row, Column, Section, Table
 
 
 def _string_to_table(st):
-    st.replace('|', '')
-    st.replace('-', '')
-    st.replace('+', '')
+    st = st.replace('|', '')
+    st = st.replace('-', '')
+    st = st.replace('+', '')
+    st = st.replace('\n\n', '\n')
     table = Table()
     lines = st.split('\n')
     for i, line in enumerate(lines):
         for j, character in enumerate(line):
             if character.isdigit():
-                table.set(i, j, int(character))
+                print i, j, character
+                try:
+                    table.set(i, j, int(character))
+                except Exception:
+                    pass
     return table
 
 class TestGames(unittest.TestCase):
-    def test_game_01(self):
+    def test_game_00(self):
         table = _string_to_table(
             '...|...|...\n' \
             '...|...|...\n' \
@@ -32,6 +37,31 @@ class TestGames(unittest.TestCase):
         )
 
         assert not table.solved()
+
+    def test_game_01(self):
+        table = _string_to_table(
+            '123|...|689\n' \
+            '456|123|...\n' \
+            '789|...|123\n' \
+            '---+---+---\n' \
+            '312|978|...\n' \
+            '...|312|..7\n' \
+            '...|645|312\n' \
+            '---+---+---\n' \
+            '231|.5.|897\n' \
+            '.9.|231|564\n' \
+            '54.|.6.|231'
+        )
+
+        print table
+        for row in table.rows:
+            print row
+            if not row.solved():
+                for cell in row:
+                    print cell, cell.potential_values
+
+        print table
+        assert table.solved()
 
 
 class TestTable(unittest.TestCase):

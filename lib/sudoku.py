@@ -80,7 +80,7 @@ class Table(object):
             currently_affected_cells = set(affected_cells)
             for cell in currently_affected_cells:
                 if cell.clear_potential_value(value):
-                    affected_cells.add(cell.mates)
+                    affected_cells.update(cell.mates)
                 else:
                     affected_cells.remove(cell)
 

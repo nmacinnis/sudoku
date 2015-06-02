@@ -21,29 +21,49 @@ class Sudoku(object):
 
 
 class Table(object):
-    def __init__(self, sections=None):
-        self.sections = sections or [Section() for _ in xrange(Sudoku.SIZE2)]
+    def __init__(self, cells=None):
+        self.cells = cells or [
+            [Cell() for _ in xrange(Sudoku.SIZE2)]
+            for __ in xrange(Sudoku.SIZE2)
+        ]
+        self.rows = [Row(cells=row) for row in self.cells]
+
+        _columns = [[None for _ in xrange(Sudoku.SIZE2)]
+                    for _ in xrange(Sudoku.SIZE2)]
+        for i in xrange(Sudoku.SIZE2):
+            for j in xrange(Sudoku.SIZE2):
+                _columns[i][j] = self.cells[j][i]
+        self.columns = [Column(cells=_columns[i]) for i in xrange(
+            Sudoku.SIZE2)]
+
+        _sections = [[] for _ in xrange(Sudoku.SIZE2)]
+        for i in xrange(Sudoku.SIZE2):
+            for j in xrange(Sudoku.SIZE2):
+                _sections[((i / Sudoku.SIZE) * Sudoku.SIZE)
+                          + (j / Sudoku.SIZE)].append(self.cells[i][j])
+        self.sections = [Section(cells=_sections[i])
+                         for i in xrange(Sudoku.SIZE2)]
 
     def __str__(self):
         divider = '\n' + '+'.join(_split('-' * Sudoku.SIZE2)) + '\n'
         return divider.join([
             '\n'.join([
                 '|'.join(_split(str(row))) for row in multirow
-            ]) for multirow in _split(self.rows())
+            ]) for multirow in _split(self.rows)
         ])
 
     def __repr__(self):
-        return 'Table(sections=%s)' % repr(self.sections)
+        return 'Table(cells=%s)' % repr(self.cells)
 
     def __iter__(self):
-        return iter(self.sections)
+        return iter(self.cells)
 
     def __getitem__(self, index):
-        return self.sections[index]
+        return self.cells[index]
 
-    def __setitem__(self, index, section):
-        if isinstance(section, Section):
-            self.sections[index] = section
+    def __setitem__(self, index, row):
+        if isinstance(row, Row):
+            self.cells[index] = row
         else:
             raise TypeError
 
@@ -57,28 +77,6 @@ class Table(object):
         if self.solved():
             return True
         return False
-
-    def rows(self):
-        rows = []
-        for section_row in _split(self):
-            for r in xrange(Sudoku.SIZE):
-                cells = []
-                for section in section_row:
-                    row = _split(section)[r]
-                    cells.extend(row)
-                rows.append(Row(cells=cells))
-        return rows
-
-    def columns(self):
-        columns = []
-        for section_column in _splitvertical(self):
-            for c in xrange(Sudoku.SIZE):
-                cells = []
-                for section in section_column:
-                    column = section.to_columns()[c]
-                    cells.extend(column)
-                columns.append(Column(cells))
-        return columns
 
 
 class Soluble(object):
@@ -133,6 +131,9 @@ class Row(Soluble):
 class Column(Soluble):
     def __init__(self, cells=None):
         super(Column, self).__init__(cells=cells)
+
+    def __str__(self):
+        return '\n'.join([str(cell) for cell in self])
 
     def __repr__(self):
         return 'Column(cells=%s)' % repr(self.cells)
@@ -201,20 +202,11 @@ class Cell(object):
 if __name__ == '__main__':
     cell = Cell()
     print 'cell', cell
+    row = Row()
+    print 'row', row
+    column = Column()
+    print 'column\n', column
     section = Section()
-    print 'section'
-    print section
-    print section.solved()
+    print 'section\n', section
     table = Table()
-    print 'table'
-    print table
-    print table.rows()
-    #print table.solved()
-
-    #table.solve()
-
-    #print section_row.rows()
-    #for row in table.rows():
-    #    print 'row: ', repr(row)
-
-    print repr(table)
+    print 'table\n', table

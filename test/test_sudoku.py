@@ -22,17 +22,28 @@ class TestTable(unittest.TestCase):
 
     def test_rows(self):
         table = Table()
-        rows = table.rows()
+        rows = table.rows
         assert rows[0][0] is table[0][0]
         assert rows[0][1] is table[0][1]
-        assert rows[1][0] is table[0][3]
+        assert rows[1][0] is table[1][0]
 
     def test_columns(self):
         table = Table()
-        columns = table.columns()
+        columns = table.columns
+        print table
         assert columns[0][0] is table[0][0]
-        assert columns[0][1] is table[0][3]
+        assert columns[0][1] is table[1][0]
         assert columns[1][0] is table[0][1]
+
+    def test_sections(self):
+        table = Table()
+        sections = table.sections
+        sections[0][3].value = 3
+        print table
+
+        assert sections[0][0] is table[0][0]
+        assert sections[0][1] is table[0][1]
+        assert sections[0][3] is table[1][0]
 
 
 class TestRow(unittest.TestCase):

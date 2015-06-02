@@ -1,18 +1,19 @@
 #! /usr/bin/env python
 
 
-
 def _split(l):
     return [
         l[x * Sudoku.SIZE: (x + 1) * Sudoku.SIZE]
         for x in xrange(Sudoku.SIZE)
     ]
 
+
 def _splitvertical(l):
     return [
         l[x::Sudoku.SIZE]
         for x in xrange(Sudoku.SIZE)
     ]
+
 
 class Sudoku(object):
     SIZE = 3

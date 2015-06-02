@@ -34,6 +34,7 @@ class TestTable(unittest.TestCase):
         assert columns[0][1] is table[0][3]
         assert columns[1][0] is table[0][1]
 
+
 class TestRow(unittest.TestCase):
     def test_row_solved(self):
         cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]

@@ -121,7 +121,6 @@ class Table(object):
                 return
 
 
-
 class Soluble(object):
     def __init__(self, cells=None):
         self.cells = cells or [Cell() for cell in xrange(Sudoku.SIZE2)]
@@ -172,17 +171,23 @@ class Soluble(object):
 class Row(Soluble):
     def __init__(self, cells=None):
         super(Row, self).__init__(cells=cells)
-        for cell in cells:
+        for cell in self.cells:
             cell.row = self
 
     def __repr__(self):
         return 'Row(cells=%s)' % repr(self.cells)
 
+    def to_sections(self):
+        return _split(self.cells)
+
+    def related_sections(self):
+        return set([cell.section for cell in self])
+
 
 class Column(Soluble):
     def __init__(self, cells=None):
         super(Column, self).__init__(cells=cells)
-        for cell in cells:
+        for cell in self.cells:
             cell.column = self
 
     def __str__(self):
@@ -191,11 +196,17 @@ class Column(Soluble):
     def __repr__(self):
         return 'Column(cells=%s)' % repr(self.cells)
 
+    def to_sections(self):
+        return _split(self.cells)
+
+    def related_sections(self):
+        return set([cell.section for cell in self])
+
 
 class Section(Soluble):
     def __init__(self, cells=None):
         super(Section, self).__init__(cells=cells)
-        for cell in cells:
+        for cell in self.cells:
             cell.section = self
 
     def __str__(self):
@@ -217,6 +228,12 @@ class Section(Soluble):
             self[x::Sudoku.SIZE]
             for x in xrange(Sudoku.SIZE)
         ]
+
+    def related_rows(self):
+        return set([cell.row for cell in self])
+
+    def related_columns(self):
+        return set([cell.column for cell in self])
 
 
 class Cell(object):

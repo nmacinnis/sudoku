@@ -93,8 +93,8 @@ class Table(object):
         calculated_sets.update(cleared_cells)
 
         # third, check cell's regions for cleared values
-        for soluble in [cell.row, cell.column, cell.section]:
-            single_candidates = soluble.find_single_candidates()
+        for region in [cell.row, cell.column, cell.section]:
+            single_candidates = region.find_single_candidates()
             calculated_sets.update(single_candidates)
 
         # fourth, perform calculated sets
@@ -121,7 +121,7 @@ class Table(object):
                 return
 
 
-class Soluble(object):
+class Region(object):
     def __init__(self, cells=None):
         self.cells = cells or [Cell() for cell in xrange(Sudoku.SIZE2)]
 
@@ -129,7 +129,7 @@ class Soluble(object):
         return ''.join([str(cell) for cell in self])
 
     def __repr__(self):
-        return 'Soluble(cells=%s)' % repr(self.cells)
+        return 'Region(cells=%s)' % repr(self.cells)
 
     def __iter__(self):
         return iter(self.cells)
@@ -168,7 +168,7 @@ class Soluble(object):
         return all(self)
 
 
-class Row(Soluble):
+class Row(Region):
     def __init__(self, cells=None):
         super(Row, self).__init__(cells=cells)
         for cell in self.cells:
@@ -184,7 +184,7 @@ class Row(Soluble):
         return set([cell.section for cell in self])
 
 
-class Column(Soluble):
+class Column(Region):
     def __init__(self, cells=None):
         super(Column, self).__init__(cells=cells)
         for cell in self.cells:
@@ -203,7 +203,7 @@ class Column(Soluble):
         return set([cell.section for cell in self])
 
 
-class Section(Soluble):
+class Section(Region):
     def __init__(self, cells=None):
         super(Section, self).__init__(cells=cells)
         for cell in self.cells:

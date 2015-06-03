@@ -1,6 +1,6 @@
 import unittest
 
-from sudoku import Sudoku, Cell, Soluble, Row, Column, Section, Table
+from sudoku import Sudoku, Cell, Region, Row, Column, Section, Table
 
 
 def _string_to_table(st):
@@ -270,32 +270,32 @@ class TestTable(unittest.TestCase):
         self.assertEquals(9, table[2][2].value)
 
 
-class TestSoluble(unittest.TestCase):
-    def test_soluble_solved(self):
+class TestRegion(unittest.TestCase):
+    def test_region_solved(self):
         cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
 
-        soluble = Soluble(cells)
+        region = Region(cells)
 
-        assert soluble.solved()
+        assert region.solved()
 
-    def test_soluble_not_solved(self):
+    def test_region_not_solved(self):
         cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2)]
         cells.append(Cell())
 
-        soluble = Soluble(cells)
+        region = Region(cells)
 
-        assert not soluble.solved()
+        assert not region.solved()
 
     def test_str_solved(self):
         cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
-        soluble = Soluble(cells)
-        self.assertEquals('123456789', str(soluble))
+        region = Region(cells)
+        self.assertEquals('123456789', str(region))
 
     def test_str_unsolved(self):
         cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2)]
         cells.append(Cell())
-        soluble = Soluble(cells)
-        self.assertEquals('12345678.', str(soluble))
+        region = Region(cells)
+        self.assertEquals('12345678.', str(region))
 
 
 class TestCell(unittest.TestCase):

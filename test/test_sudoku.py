@@ -23,6 +23,9 @@ def _string_to_table(st):
 
 
 class TestGames(unittest.TestCase):
+    def tearDown(self):
+        Sudoku.uid = 0
+
     def test_game_00(self):
         table = _string_to_table(
             '...|...|...\n'
@@ -57,6 +60,7 @@ class TestGames(unittest.TestCase):
 
         print table
         assert table.solved()
+        table.validate()
 
     def test_game_02(self):
         table = _string_to_table(
@@ -75,8 +79,8 @@ class TestGames(unittest.TestCase):
 
         print table
         assert table.solved()
+        table.validate()
 
-    @unittest.SkipTest
     def test_game_03(self):
         table = _string_to_table(
             '7..|.3.|.8.\n'
@@ -92,15 +96,96 @@ class TestGames(unittest.TestCase):
             '.9.|.5.|..1'
         )
 
-        for row in table.rows:
-            print row
-            if not row.solved():
-                for cell in row:
-                    print cell, cell.potential_values
-
-        table.solve()
         print table
         assert table.solved()
+        table.validate()
+
+        self.assertEquals(
+            '726|531|489\n'
+            '918|462|735\n'
+            '345|897|162\n'
+            '---+---+---\n'
+            '179|384|526\n'
+            '632|915|847\n'
+            '584|276|913\n'
+            '---+---+---\n'
+            '867|129|354\n'
+            '251|743|698\n'
+            '493|658|271',
+            str(table)
+        )
+
+    def test_game_04(self):
+        table = _string_to_table(
+            '..8|...|5..\n'
+            '.7.|4.6|.8.\n'
+            '3..|...|..6\n'
+            '---+---+---\n'
+            '..4|8.2|7..\n'
+            '5..|...|..3\n'
+            '..1|5.4|2..\n'
+            '---+---+---\n'
+            '1..|...|..5\n'
+            '.5.|3.9|.2.\n'
+            '..6|...|9..'
+        )
+
+        table.solve()
+        assert not table.solved()
+
+        print 'ok trying brute force'
+        print table
+        print 'here goes'
+
+        table.brute_force()
+
+        assert table.solved()
+        table.validate()
+
+        self.assertEquals(
+            '468|923|517\n'
+            '975|416|382\n'
+            '312|785|496\n'
+            '---+---+---\n'
+            '634|892|751\n'
+            '529|671|843\n'
+            '781|534|269\n'
+            '---+---+---\n'
+            '193|248|675\n'
+            '857|369|124\n'
+            '246|157|938',
+            str(table)
+        )
+
+    def test_game_05(self):
+        table = _string_to_table(
+            '7.2|..1|4..\n'
+            '..8|..6|.3.\n'
+            '.1.|...|..9\n'
+            '---+---+---\n'
+            '...|.12|.5.\n'
+            '.2.|...|.7.\n'
+            '.4.|57.|...\n'
+            '---+---+---\n'
+            '3..|...|.2.\n'
+            '.7.|6..|5..\n'
+            '..5|3..|6.8'
+        )
+
+        table.solve()
+
+        if not table.solved():
+            print 'ok trying brute force'
+            print table
+            print 'here goes'
+
+            table.brute_force()
+
+        assert table.solved()
+        table.validate()
+
+        print table
+        assert False
 
 
 class Test2x2(unittest.TestCase):
@@ -111,8 +196,22 @@ class Test2x2(unittest.TestCase):
     def tearDown(self):
         Sudoku.SIZE = 3
         Sudoku.SIZE2 = 9
+        Sudoku.uid = 0
 
-    def test_2x2_game(self):
+    def test_2x2_game_00(self):
+        Sudoku.SIZE = 2
+        Sudoku.SIZE2 = 4
+        table = _string_to_table(
+            '..|..\n'
+            '..|..\n'
+            '--+--\n'
+            '..|..\n'
+            '..|..'
+        )
+        print table
+        assert not table.solved()
+
+    def test_2x2_game_01(self):
         Sudoku.SIZE = 2
         Sudoku.SIZE2 = 4
         table = _string_to_table(
@@ -127,6 +226,9 @@ class Test2x2(unittest.TestCase):
 
 
 class TestTable(unittest.TestCase):
+    def tearDown(self):
+        Sudoku.uid = 0
+
     def test_str(self):
         exp = \
             "...|...|...\n" \
@@ -271,6 +373,9 @@ class TestTable(unittest.TestCase):
 
 
 class TestRegion(unittest.TestCase):
+    def tearDown(self):
+        Sudoku.uid = 0
+
     def test_region_solved(self):
         cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
 
@@ -297,8 +402,35 @@ class TestRegion(unittest.TestCase):
         region = Region(cells)
         self.assertEquals('12345678.', str(region))
 
+    def test_find_candidate_subregions(self):
+        table = _string_to_table(
+            '123|...|...\n'
+            '456|...|...\n'
+            '7..|...|...\n'
+            '---+---+---\n'
+            '...|...|...\n'
+            '...|...|...\n'
+            '...|...|...\n'
+            '---+---+---\n'
+            '...|...|...\n'
+            '...|...|...\n'
+            '...|...|...'
+        )
+
+        print table
+        for cell in table.rows[2][1:2]:
+            self.assertEquals([8, 9], cell.potential_values)
+
+        for cell in table.rows[2][3:]:
+            print cell.potential_values
+            assert 8 not in cell.potential_values
+            assert 9 not in cell.potential_values
+
 
 class TestCell(unittest.TestCase):
+    def tearDown(self):
+        Sudoku.uid = 0
+
     def test_cell_value_immutable(self):
         cell = Cell(value=1)
         self.assertRaises(Exception, setattr, cell.value, 2)
@@ -311,6 +443,9 @@ class TestCell(unittest.TestCase):
 
 
 class TestRow(unittest.TestCase):
+    def tearDown(self):
+        Sudoku.uid = 0
+
     def test_str(self):
         cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
         row = Row(cells)
@@ -342,6 +477,9 @@ class TestRow(unittest.TestCase):
 
 
 class TestColumn(unittest.TestCase):
+    def tearDown(self):
+        Sudoku.uid = 0
+
     def test_str(self):
         cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
         column = Column(cells)
@@ -373,6 +511,9 @@ class TestColumn(unittest.TestCase):
 
 
 class TestSection(unittest.TestCase):
+    def tearDown(self):
+        Sudoku.uid = 0
+
     def test_str(self):
         cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
         section = Section(cells)

@@ -1,6 +1,8 @@
 #! /usr/bin/env python
 import weakref
 
+from collections import defaultdict
+
 
 def _split(l):
     return [
@@ -19,6 +21,8 @@ def _splitvertical(l):
 class Sudoku(object):
     SIZE = 3
     SIZE2 = 9
+    uid = 0
+    brute_force_attempts = 0
 
 
 class Table(object):
@@ -73,11 +77,41 @@ class Table(object):
     def solved(self):
         return all(self.rows)
 
+    def validate(self):
+        for row in self.rows:
+            row.validate()
+        for column in self.columns:
+            column.validate()
+        for section in self.sections:
+            section.validate()
+
+    def copy(self):
+        new_rows = []
+        for cell_row in self.cells:
+            new_row = []
+            new_rows.append(new_row)
+            for cell in cell_row:
+                new_cell = Cell()
+                if cell.value:
+                    new_cell.value = cell.value
+                new_cell.potential_values = list(cell.potential_values)
+                new_row.append(new_cell)
+        return Table(cells=new_rows)
+
     def set(self, row, column, value):
         cell = self[row][column]
         if cell.value:
-            # already done here
+            if value != cell.value:
+                print 'attempted setting', row, column, value
+                raise Exception(
+                    "something bad because value was already %s" % cell.value)
             return
+        if cell.potential_values == []:
+            print "this is weird, cell %s %s has no potential values %s and its value is %s" % (row, column, cell.potential_values, cell.value)
+        if value not in cell.potential_values:
+            raise Exception("invalid situation here, can't set %s %s %s because potential values are only %s" % (row, column, value, cell.potential_values))
+        print 'setting', row, column, value
+        print 'ok values are', cell.potential_values
         cleared_values = list(cell.potential_values)
         cleared_values.remove(value)
         cell.value = value
@@ -88,8 +122,19 @@ class Table(object):
         for affected_cell in affected_cells:
             affected_cell.clear_potential_value(value)
 
+        # first.5 find cleared subregions
+        for region in [cell.row, cell.column, cell.section]:
+            region.find_candidate_subregions()
+
         # second, check cell's mates for cleared cells
-        cleared_cells = {each_cell: each_cell.potential_values[0] for each_cell in cell.mates if len(each_cell.potential_values) == 1}
+        cleared_cells = {
+            each_cell: each_cell.potential_values[0]
+            for each_cell in cell.mates
+            if len(each_cell.potential_values) == 1
+        }
+        if cleared_cells:
+            for cleared_cell, cleared_value in cleared_cells.items():
+                print "calculated by finding the last potential values", cleared_cell.index(), cleared_value
         calculated_sets.update(cleared_cells)
 
         # third, check cell's regions for cleared values
@@ -110,20 +155,55 @@ class Table(object):
             # clear any remaining single candidates
             calculated_sets = {}
             for row in self.rows:
+                row.find_candidate_subregions()
                 calculated_sets.update(row.find_single_candidates())
             for column in self.columns:
+                column.find_candidate_subregions()
                 calculated_sets.update(column.find_single_candidates())
             for section in self.sections:
+                section.find_candidate_subregions()
                 calculated_sets.update(section.find_single_candidates())
             if calculated_sets:
                 self.perform_sets(calculated_sets)
             else:
                 return
 
+    def brute_force(self):
+        for row in self:
+            for cell in row:
+                if not cell.value:
+                    for potential_value in cell.potential_values:
+                        new_table = self.copy()
+                        try:
+                            print "testing a value"
+                            print new_table
+                            index = cell.index()
+                            new_table.set(index[0], index[1], potential_value)
+                            new_table.solve()
+                            print "recursion!", Sudoku.brute_force_attempts
+                            new_table.brute_force()
+                        except Exception, e:
+                            print 'attempted to set', index[
+                                0], index[1], potential_value
+                            print e
+                            print new_table
+                            print ''
+                            Sudoku.brute_force_attempts += 1
+                            if Sudoku.brute_force_attempts > 10:
+                                raise
+                        if new_table.solved():
+                            self.rows = new_table.rows
+                            self.columns = new_table.columns
+                            self.sections = new_table.sections
+                            return
+
 
 class Region(object):
     def __init__(self, cells=None):
         self.cells = cells or [Cell() for cell in xrange(Sudoku.SIZE2)]
+        Sudoku.uid += 1
+        self.uid = Sudoku.uid
+        #print "region of type", type(self), "generated with id", self.uid
 
     def __str__(self):
         return ''.join([str(cell) for cell in self])
@@ -148,6 +228,20 @@ class Region(object):
     def index(self, cell):
         return self.cells.index(cell)
 
+    def solved(self):
+        return all(self)
+
+    def validate(self):
+        required_values = range(1, Sudoku.SIZE2 + 1)
+        actual_values = sorted([cell.value for cell in self])
+        assert actual_values == required_values, actual_values
+
+    def subregions(self):
+        pass
+
+    def siblings(self):
+        pass
+
     def candidates(self, value):
         return filter(lambda cell: value in cell.potential_values, self.cells)
 
@@ -159,20 +253,65 @@ class Region(object):
             candidates = self.candidates(value)
             if len(candidates) == 1:
                 results[candidates[0]] = value
-                print self, 'found single candidate', candidates[
-                    0].index(), candidates[0].potential_values
+                #print self, 'found single candidate', candidates[
+                #    0].index(), candidates[0].potential_values
 
         return results
 
-    def solved(self):
-        return all(self)
+    def restrict_value_to_subregion(self, value, subregion):
+        for sibling in subregion.siblings():
+            for cell in sibling:
+                cell.clear_potential_value(value)
+
+    def find_candidate_subregions(self, values=None):
+        if values is None:
+            values = range(1, Sudoku.SIZE2 + 1)
+        for value in values:
+            #print type(self), self.uid, repr(str(self)), 'checking for candidate subregions for', value
+            # separate subregions by type
+            subregions_by_type = defaultdict(list)
+            for subregion in self.subregions():
+                subregions_by_type[type(subregion)].append(subregion)
+            for _type, subregions in subregions_by_type.items():
+                candidate_subregions = filter(
+                    lambda subregion: len(subregion.candidates(value)) > 0,
+                    subregions
+                )
+                #print 'candidate subregions', candidate_subregions
+                if len(candidate_subregions) == 1:
+                    self.restrict_value_to_subregion(
+                        value, candidate_subregions[0])
 
 
-class Row(Region):
+class Subregion(Region):
+    def __init__(self, cells=None):
+        super(Subregion, self).__init__(
+            cells=(cells or [Cell() for cell in xrange(Sudoku.SIZE)]))
+
+    def __repr__(self):
+        return 'Subregion(cells=%s)' % repr(self.cells)
+
+    def siblings(self):
+        pass
+
+    def parent_section(self):
+        pass
+
+
+class AbstractRow(Region):
+    def __init__(self, cells=None):
+        super(AbstractRow, self).__init__(cells=cells)
+
+
+class Row(AbstractRow):
     def __init__(self, cells=None):
         super(Row, self).__init__(cells=cells)
         for cell in self.cells:
             cell.row = self
+        self.subrows = [Subrow(cells=segment)
+                        for segment in _split(self.cells)]
+        for subrow in self.subrows:
+            subrow.row = self
 
     def __repr__(self):
         return 'Row(cells=%s)' % repr(self.cells)
@@ -183,15 +322,58 @@ class Row(Region):
     def related_sections(self):
         return set([cell.section for cell in self])
 
+    def subregions(self):
+        return self.subrows
 
-class Column(Region):
+
+class Subrow(Subregion, AbstractRow):
+    def __init__(self, cells=None):
+        super(Subrow, self).__init__(cells=cells)
+        for cell in self.cells:
+            cell.subrow = self
+        self._row_ref = lambda: None
+        self._section_ref = lambda: None
+
+    def __repr__(self):
+        return 'Subrow(cells=%s)' % repr(self.cells)
+
+    @property
+    def row(self):
+        return self._row_ref()
+
+    @row.setter
+    def row(self, row):
+        self._row_ref = weakref.ref(row)
+
+    @property
+    def section(self):
+        return self._section_ref()
+
+    @section.setter
+    def section(self, section):
+        self._section_ref = weakref.ref(section)
+
+    def siblings(self):
+        return set(self.row.subrows).symmetric_difference(set(self.section.subrows))
+
+
+class AbstractColumn(Region):
+    def __init__(self, cells=None):
+        super(AbstractColumn, self).__init__(cells=cells)
+
+    def __str__(self):
+        return '\n'.join([str(cell) for cell in self])
+
+
+class Column(AbstractColumn):
     def __init__(self, cells=None):
         super(Column, self).__init__(cells=cells)
         for cell in self.cells:
             cell.column = self
-
-    def __str__(self):
-        return '\n'.join([str(cell) for cell in self])
+        self.subcolumns = [Subcolumn(cells=segment)
+                           for segment in _split(self.cells)]
+        for subcolumn in self.subcolumns:
+            subcolumn.column = self
 
     def __repr__(self):
         return 'Column(cells=%s)' % repr(self.cells)
@@ -202,12 +384,56 @@ class Column(Region):
     def related_sections(self):
         return set([cell.section for cell in self])
 
+    def subregions(self):
+        return self.subcolumns
+
+
+class Subcolumn(Subregion, AbstractColumn):
+    def __init__(self, cells=None):
+        super(Subcolumn, self).__init__(cells=cells)
+        for cell in self.cells:
+            cell.subcolumn = self
+        self._column_ref = lambda: None
+        self._section_ref = lambda: None
+
+    def __repr__(self):
+        return 'Subcolumn(cells=%s)' % repr(self.cells)
+
+    def parent_column(self):
+        pass
+
+    @property
+    def column(self):
+        return self._column_ref()
+
+    @column.setter
+    def column(self, column):
+        self._column_ref = weakref.ref(column)
+
+    @property
+    def section(self):
+        return self._section_ref()
+
+    @section.setter
+    def section(self, section):
+        self._section_ref = weakref.ref(section)
+
+    def siblings(self):
+        return set(self.column.subcolumns).symmetric_difference(set(self.section.subcolumns))
+
 
 class Section(Region):
     def __init__(self, cells=None):
         super(Section, self).__init__(cells=cells)
         for cell in self.cells:
             cell.section = self
+        self.subrows = list(set(
+            [cell.subrow for cell in self.cells if cell.subrow is not None]))
+        for subrow in self.subrows:
+            subrow.section = self
+        self.subcolumns = list(set([cell.subcolumn for cell in self.cells if cell.subcolumn is not None]))
+        for subcolumn in self.subcolumns:
+            subcolumn.section = self
 
     def __str__(self):
         return '\n'.join([
@@ -235,6 +461,27 @@ class Section(Region):
     def related_columns(self):
         return set([cell.column for cell in self])
 
+    def find_subrows_for_value(self, value):
+        subrows = [
+            subrow for subrow in self.to_rows()
+            if len(filter(lambda cell: value in cell.potential_values, subrow)) > 1
+        ]
+        if len(subrows) == 1:
+            # this section can only have that value in this row
+            # therefore no other section can have that value in this row
+            return subrows[0][0].row, subrows[0]
+
+    def find_subcolumns_for_value(self, value):
+        subcolumns = [
+            subcolumn for subcolumn in self.to_columns()
+            if len(filter(lambda cell: value in cell.potential_values, subcolumn)) > 1
+        ]
+        if len(subcolumns) == 1:
+            return subcolumns[0][0].column, subcolumns[0]
+
+    def subregions(self):
+        return self.subrows + self.subcolumns
+
 
 class Cell(object):
     def __init__(self, value=None):
@@ -244,7 +491,9 @@ class Cell(object):
         else:
             self.potential_values = range(1, (Sudoku.SIZE2) + 1)
         self._row_ref = lambda: None
+        self._subrow_ref = lambda: None
         self._column_ref = lambda: None
+        self._subcolumn_ref = lambda: None
         self._section_ref = lambda: None
 
     def __str__(self):
@@ -303,12 +552,28 @@ class Cell(object):
         self._row_ref = weakref.ref(row)
 
     @property
+    def subrow(self):
+        return self._subrow_ref()
+
+    @subrow.setter
+    def subrow(self, subrow):
+        self._subrow_ref = weakref.ref(subrow)
+
+    @property
     def column(self):
         return self._column_ref()
 
     @column.setter
     def column(self, column):
         self._column_ref = weakref.ref(column)
+
+    @property
+    def subcolumn(self):
+        return self._subcolumn_ref()
+
+    @subcolumn.setter
+    def subcolumn(self, subcolumn):
+        self._subcolumn_ref = weakref.ref(subcolumn)
 
     @property
     def section(self):
@@ -322,6 +587,10 @@ class Cell(object):
     def mates(self):
         return set(self.row.cells + self.column.cells + self.section.cells)
 
+    def find_single_regions(self):
+        for value in self.potential_values:
+            pass
+
 
 if __name__ == '__main__':
     cell = Cell()
@@ -334,3 +603,9 @@ if __name__ == '__main__':
     print 'section\n', section
     table = Table()
     print 'table\n', table
+    subrow = Subrow()
+    print subrow
+    print repr(subrow)
+    subcolumn = Subcolumn()
+    print subcolumn
+    print repr(subcolumn)

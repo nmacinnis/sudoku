@@ -73,12 +73,31 @@ class TestGames(unittest.TestCase):
             '...|..9|6..'
         )
 
+        print table
+        assert table.solved()
+
+    def test_game_03(self):
+        table = _string_to_table(
+            '7..|.3.|.8.\n'
+            '.18|...|7..\n'
+            '3..|...|..2\n'
+            '---+---+---\n'
+            '...|38.|5..\n'
+            '..2|9.5|8..\n'
+            '..4|.76|...\n'
+            '---+---+---\n'
+            '8..|...|..4\n'
+            '..1|...|69.\n'
+            '.9.|.5.|..1'
+        )
+
         for row in table.rows:
             print row
             if not row.solved():
                 for cell in row:
                     print cell, cell.potential_values
 
+        table.solve()
         print table
         assert table.solved()
 

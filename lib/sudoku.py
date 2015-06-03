@@ -94,14 +94,32 @@ class Table(object):
 
         # third, check cell's regions for cleared values
         for soluble in [cell.row, cell.column, cell.section]:
-            single_candidates = soluble.find_single_candidates(
-                range(1, Sudoku.SIZE2 + 1))
+            single_candidates = soluble.find_single_candidates()
             calculated_sets.update(single_candidates)
 
         # fourth, perform calculated sets
-        for cleared_cell, cleared_value in calculated_sets.items():
-            index = cleared_cell.index()
-            self.set(index[0], index[1], cleared_value)
+        self.perform_sets(calculated_sets)
+
+    def perform_sets(self, sets):
+        for cell, value in sets.items():
+            index = cell.index()
+            self.set(index[0], index[1], value)
+
+    def solve(self):
+        while not self.solved():
+            # clear any remaining single candidates
+            calculated_sets = {}
+            for row in self.rows:
+                calculated_sets.update(row.find_single_candidates())
+            for column in self.columns:
+                calculated_sets.update(column.find_single_candidates())
+            for section in self.sections:
+                calculated_sets.update(section.find_single_candidates())
+            if calculated_sets:
+                self.perform_sets(calculated_sets)
+            else:
+                return
+
 
 
 class Soluble(object):
@@ -134,7 +152,9 @@ class Soluble(object):
     def candidates(self, value):
         return filter(lambda cell: value in cell.potential_values, self.cells)
 
-    def find_single_candidates(self, values):
+    def find_single_candidates(self, values=None):
+        if values is None:
+            values = range(1, Sudoku.SIZE2 + 1)
         results = {}
         for value in values:
             candidates = self.candidates(value)

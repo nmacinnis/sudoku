@@ -58,7 +58,6 @@ class TestGames(unittest.TestCase):
         print table
         assert table.solved()
 
-    @unittest.SkipTest
     def test_game_02(self):
         table = _string_to_table(
             '..3|9..|...\n'
@@ -267,47 +266,6 @@ class TestSoluble(unittest.TestCase):
 
         assert not soluble.solved()
 
-    def test_solve_soluble(self):
-        cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2)]
-        unsolved_cell = Cell()
-        cells.append(unsolved_cell)
-
-        soluble = Soluble(cells)
-
-        print repr(soluble)
-        assert not soluble.solved()
-        assert soluble.solve()
-        assert unsolved_cell.value == 9
-
-    def test_solve_soluble_backwards(self):
-        cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2)]
-        unsolved_cell = Cell()
-        cells.append(unsolved_cell)
-        cells.reverse()
-
-        soluble = Soluble(cells)
-
-        print repr(soluble)
-        assert not soluble.solved()
-        assert soluble.solve()
-        assert unsolved_cell.value == 9
-
-    def test_solve_soluble_incomplete(self):
-        cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 - 1)]
-        unsolved_cell_a = Cell()
-        cells.append(unsolved_cell_a)
-        unsolved_cell_b = Cell()
-        cells.append(unsolved_cell_b)
-
-        soluble = Soluble(cells)
-
-        print repr(soluble)
-        assert not soluble.solved()
-        assert not soluble.solve()
-
-        assert unsolved_cell_a.potential_values == [8, 9]
-        assert unsolved_cell_b.potential_values == [8, 9]
-
     def test_str_solved(self):
         cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
         soluble = Soluble(cells)
@@ -329,7 +287,7 @@ class TestCell(unittest.TestCase):
         cell = Cell()
         for i in xrange(1, Sudoku.SIZE2):
             cell.clear_potential_value(i)
-        assert cell.value == 9
+        assert cell.potential_values == [9]
 
 
 class TestRow(unittest.TestCase):

@@ -73,51 +73,35 @@ class Table(object):
     def solved(self):
         return all(self.rows)
 
-    def solve(self):
-        if self.solved():
-            return True
-        return False
-
     def set(self, row, column, value):
         cell = self[row][column]
+        if cell.value:
+            # already done here
+            return
+        cleared_values = list(cell.potential_values)
+        cleared_values.remove(value)
         cell.value = value
-        affected_cells = [(value, cell.mates)]
-        while affected_cells:
-            value, currently_affected_cells = affected_cells.pop()
-            print 'value', value, 'affected cells', currently_affected_cells
-            if value is None:
-                cell = currently_affected_cells[0]
-                for soluble in [cell.row, cell.column, cell.section]:
-                    #print 'finding single candidates in soluble:', repr(soluble)
-                    results = soluble.find_single_candidates(cell.potential_values)
-                    for value, single_candidate in results:
-                        print 'found single candidate for', value, repr(soluble)
-                        single_candidate.value = value
-                        affected_cells.append((value, single_candidate.mates))
-            else:
-                for cell in currently_affected_cells:
-                    if not cell.value:
-                        print 'processing', cell, 'at index', self.index(
-                            cell), repr(cell.potential_values)
-                    result = cell.clear_potential_value(value)
-                    if result is True:
-                        print 'set %s, %s to %s' % (
-                            cell.column.index(cell),
-                            cell.row.index(cell),
-                            cell.value
-                        )
-                        affected_cells.append((cell.value, cell.mates))
-                    elif result is False:
-                        print 'cleared %s, %s value %s, remaining: %s' % (
-                            cell.column.index(cell),
-                            cell.row.index(cell),
-                            value,
-                            cell.potential_values
-                        )
-                        affected_cells.append((None, [cell]))
-                    else:
-                        # didn't clear anything, nothing to do
-                        pass
+        calculated_sets = {}
+
+        # first, clear this value from cell's mates
+        affected_cells = [each_cell for each_cell in cell.mates if value in each_cell.potential_values]
+        for affected_cell in affected_cells:
+            affected_cell.clear_potential_value(value)
+
+        # second, check cell's mates for cleared cells
+        cleared_cells = {each_cell: each_cell.potential_values[0] for each_cell in cell.mates if len(each_cell.potential_values) == 1}
+        calculated_sets.update(cleared_cells)
+
+        # third, check cell's regions for cleared values
+        for soluble in [cell.row, cell.column, cell.section]:
+            single_candidates = soluble.find_single_candidates(
+                range(1, Sudoku.SIZE2 + 1))
+            calculated_sets.update(single_candidates)
+
+        # fourth, perform calculated sets
+        for cleared_cell, cleared_value in calculated_sets.items():
+            index = cleared_cell.index()
+            self.set(index[0], index[1], cleared_value)
 
 
 class Soluble(object):
@@ -151,30 +135,18 @@ class Soluble(object):
         return filter(lambda cell: value in cell.potential_values, self.cells)
 
     def find_single_candidates(self, values):
-        results = []
+        results = {}
         for value in values:
             candidates = self.candidates(value)
             if len(candidates) == 1:
-                results.append((value, candidates[0]))
-                print self, 'found single candidate', candidates[0].index(), candidates[0].potential_values
+                results[candidates[0]] = value
+                print self, 'found single candidate', candidates[
+                    0].index(), candidates[0].potential_values
 
         return results
 
     def solved(self):
         return all(self)
-
-    def solve(self):
-        if self.solved():
-            return True
-        solved_cells = [cell for cell in self if cell]
-        unsolved_cells = [cell for cell in self if not cell]
-        for solved_cell in solved_cells:
-            for unsolved_cell in unsolved_cells:
-                unsolved_cell.clear_potential_value(solved_cell.value)
-                if unsolved_cell:
-                    solved_cells.append(unsolved_cell)
-                    unsolved_cells.remove(unsolved_cell)
-        return self.solved()
 
 
 class Row(Soluble):
@@ -282,20 +254,8 @@ class Cell(object):
 
     def clear_potential_value(self, value):
         if value not in self.potential_values:
-            return None
+            return
         self.potential_values.remove(value)
-        if len(self.potential_values) == 1:
-            self.value = self.potential_values[0]
-            print 'i set my value to', self.value, 'and now my pots are', self.potential_values
-            return True
-        else:
-            return False
-            #for potential_value in self.potential_values:
-            #    for soluble in [self.row, self.column, self.section]:
-            #        if soluble and len(soluble.candidates(potential_value)) == 1:
-            #            self.value = potential_value
-            #            return True
-            #return False
 
     @property
     def row(self):

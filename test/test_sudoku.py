@@ -14,11 +14,7 @@ def _string_to_table(st):
         for j, character in enumerate(line):
             if character.isdigit():
                 print i, j, character
-                try:
-                    table.set(i, j, int(character))
-                except Exception, e:
-                    print e
-                    pass
+                table.set(i, j, int(character))
     return table
 
 
@@ -40,23 +36,24 @@ class TestGames(unittest.TestCase):
 
         assert not table.solved()
 
-    @unittest.SkipTest
     def test_game_01(self):
         table = _string_to_table(
-            '123|...|689\n'
-            '456|1..|...\n'
-            '78.|...|124\n'
+            '3.6|..7|2..\n'
+            '...|39.|...\n'
+            '.28|...|4.7\n'
             '---+---+---\n'
-            '312|978|...\n'
-            '...|312|...\n'
-            '...|6..|912\n'
+            '..1|4.5|.26\n'
+            '..2|.8.|7..\n'
+            '54.|6.9|3..\n'
             '---+---+---\n'
-            '231|...|...\n'
-            '...|231|...\n'
-            '...|...|2.1'
+            '7.9|...|68.\n'
+            '...|.36|...\n'
+            '..3|7..|1.4'
         )
 
         print table
+        assert table.solved()
+
         for row in table.rows:
             print row
             if not row.solved():

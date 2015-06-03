@@ -86,7 +86,9 @@ class Table(object):
             value, currently_affected_cells = affected_cells.pop()
             print 'value', value, 'affected cells', currently_affected_cells
             for cell in currently_affected_cells:
-                print 'processing', cell, 'at index', self.index(cell)
+                if not cell.value:
+                    print 'processing', cell, 'at index', self.index(
+                        cell), repr(cell.potential_values)
                 if cell.clear_potential_value(value):
                     print 'set %s, %s to %s' % (
                         cell.column.index(cell),

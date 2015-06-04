@@ -457,23 +457,6 @@ class TestRow(unittest.TestCase):
         del row
         assert cells[0].row is None
 
-    def test_to_sections(self):
-        row = Row()
-        sections = row.to_sections()
-        print sections
-        assert len(sections) == 3
-        for section in sections:
-            assert len(section) == 3
-
-    def test_related_sections(self):
-        table = Table()
-        row = table.rows[0]
-        related_sections = row.related_sections()
-        assert len(related_sections) == 3
-        assert table.sections[0] in related_sections
-        assert table.sections[1] in related_sections
-        assert table.sections[2] in related_sections
-
 
 class TestColumn(unittest.TestCase):
     def tearDown(self):
@@ -491,23 +474,6 @@ class TestColumn(unittest.TestCase):
         del column
         assert cells[0].column is None
 
-    def test_to_sections(self):
-        column = Column()
-        sections = column.to_sections()
-        print sections
-        assert len(sections) == 3
-        for section in sections:
-            assert len(section) == 3
-
-    def test_related_sections(self):
-        table = Table()
-        column = table.columns[0]
-        related_sections = column.related_sections()
-        assert len(related_sections) == 3
-        assert table.sections[0] in related_sections
-        assert table.sections[3] in related_sections
-        assert table.sections[6] in related_sections
-
 
 class TestSection(unittest.TestCase):
     def tearDown(self):
@@ -524,43 +490,3 @@ class TestSection(unittest.TestCase):
         assert cells[0].section is section
         del section
         assert cells[0].section is None
-
-    def test_section_to_rows(self):
-        cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
-        section = Section(cells)
-        rows = section.to_rows()
-        for row in rows:
-            self.assertEquals(3, len(row))
-
-        self.assertEquals(1, rows[0][0].value)
-        self.assertEquals(2, rows[0][1].value)
-        self.assertEquals(3, rows[0][2].value)
-
-    def test_section_to_columns(self):
-        cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
-        section = Section(cells)
-        columns = section.to_columns()
-        for column in columns:
-            self.assertEquals(3, len(column))
-
-        self.assertEquals(1, columns[0][0].value)
-        self.assertEquals(4, columns[0][1].value)
-        self.assertEquals(7, columns[0][2].value)
-
-    def test_related_rows(self):
-        table = Table()
-        section = table.sections[0]
-        related_rows = section.related_rows()
-        assert len(related_rows) == 3
-        assert table.rows[0] in related_rows
-        assert table.rows[1] in related_rows
-        assert table.rows[2] in related_rows
-
-    def test_related_columns(self):
-        table = Table()
-        section = table.sections[0]
-        related_columns = section.related_columns()
-        assert len(related_columns) == 3
-        assert table.columns[0] in related_columns
-        assert table.columns[1] in related_columns
-        assert table.columns[2] in related_columns

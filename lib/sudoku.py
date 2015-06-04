@@ -16,13 +16,6 @@ def _split(l):
     ]
 
 
-def _splitvertical(l):
-    return [
-        l[x::Sudoku.SIZE]
-        for x in xrange(Sudoku.SIZE)
-    ]
-
-
 class SudokuLogicException(Exception):
     def __init__(self, cell, value):
         super(SudokuLogicException, self).__init__(
@@ -38,7 +31,6 @@ class SudokuLogicException(Exception):
 class Sudoku(object):
     SIZE = 3
     SIZE2 = 9
-    brute_force_attempts = 0
 
 
 class Table(object):
@@ -150,7 +142,11 @@ class Table(object):
         if cleared_cells:
             for cleared_cell, cleared_value in cleared_cells.items():
                 if cleared_cell not in calculated_sets:
-                    _logger.debug('Calculated value %s for %s by eliminating other values', cleared_value, cleared_cell.index())
+                    _logger.debug(
+                        'Calculated value %s for %s by eliminating other values',
+                        cleared_value,
+                        cleared_cell.index()
+                    )
         calculated_sets.update(cleared_cells)
 
         # third, check cell's regions for cleared values
@@ -158,7 +154,11 @@ class Table(object):
             single_candidates = region.find_single_candidates()
             for cleared_cell, cleared_value in single_candidates.items():
                 if cleared_cell not in calculated_sets:
-                    _logger.debug('Calculated value %s for %s by eliminating other cells', cleared_value, cleared_cell.index())
+                    _logger.debug(
+                        'Calculated value %s for %s by eliminating other cells',
+                        cleared_value,
+                        cleared_cell.index()
+                    )
             calculated_sets.update(single_candidates)
 
         # fourth, perform calculated sets
@@ -321,9 +321,6 @@ class Subregion(Region):
     def siblings(self):
         pass
 
-    def parent_section(self):
-        pass
-
 
 class AbstractRow(Region):
     def __init__(self, cells=None):
@@ -342,12 +339,6 @@ class Row(AbstractRow):
 
     def __repr__(self):
         return 'Row(cells=%s)' % repr(self.cells)
-
-    def to_sections(self):
-        return _split(self.cells)
-
-    def related_sections(self):
-        return set([cell.section for cell in self])
 
     def subregions(self):
         return self.subrows
@@ -404,12 +395,6 @@ class Column(AbstractColumn):
 
     def __repr__(self):
         return 'Column(cells=%s)' % repr(self.cells)
-
-    def to_sections(self):
-        return _split(self.cells)
-
-    def related_sections(self):
-        return set([cell.section for cell in self])
 
     def subregions(self):
         return self.subcolumns
@@ -470,42 +455,6 @@ class Section(Region):
     def __repr__(self):
         return 'Section(cells=%s)' % repr(self.cells)
 
-    def to_rows(self):
-        return [
-            self[x * Sudoku.SIZE: (x + 1) * Sudoku.SIZE]
-            for x in xrange(Sudoku.SIZE)
-        ]
-
-    def to_columns(self):
-        return [
-            self[x::Sudoku.SIZE]
-            for x in xrange(Sudoku.SIZE)
-        ]
-
-    def related_rows(self):
-        return set([cell.row for cell in self])
-
-    def related_columns(self):
-        return set([cell.column for cell in self])
-
-    def find_subrows_for_value(self, value):
-        subrows = [
-            subrow for subrow in self.to_rows()
-            if len(filter(lambda cell: value in cell.potential_values, subrow)) > 1
-        ]
-        if len(subrows) == 1:
-            # this section can only have that value in this row
-            # therefore no other section can have that value in this row
-            return subrows[0][0].row, subrows[0]
-
-    def find_subcolumns_for_value(self, value):
-        subcolumns = [
-            subcolumn for subcolumn in self.to_columns()
-            if len(filter(lambda cell: value in cell.potential_values, subcolumn)) > 1
-        ]
-        if len(subcolumns) == 1:
-            return subcolumns[0][0].column, subcolumns[0]
-
     def subregions(self):
         return self.subrows + self.subcolumns
 
@@ -550,18 +499,15 @@ class Cell(object):
             if self.row is not None:
                 for cell in self.row:
                     if value == cell.value:
-                        raise Exception(
-                            'cannot set %s (already set in row)' % value)
+                        raise SudokuLogicException(self, value)
             if self.column is not None:
                 for cell in self.column:
                     if value == cell.value:
-                        raise Exception(
-                            'cannot set %s (already set in column)' % value)
+                        raise SudokuLogicException(self, value)
             if self.section is not None:
                 for cell in self.section:
                     if value == cell.value:
-                        raise Exception(
-                            'cannot set %s (already set in section)' % value)
+                        raise SudokuLogicException(self, value)
         self._value = value
         self.potential_values = []
 
@@ -613,10 +559,6 @@ class Cell(object):
     @property
     def mates(self):
         return set(self.row.cells + self.column.cells + self.section.cells)
-
-    def find_single_regions(self):
-        for value in self.potential_values:
-            pass
 
 
 if __name__ == '__main__':

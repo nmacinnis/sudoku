@@ -573,8 +573,6 @@ if __name__ == '__main__':
     table = Table()
     print 'table\n', table
     subrow = Subrow()
-    print subrow
-    print repr(subrow)
+    print 'subrow', subrow
     subcolumn = Subcolumn()
-    print subcolumn
-    print repr(subcolumn)
+    print 'subcolumn\n', subcolumn

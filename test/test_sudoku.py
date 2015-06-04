@@ -12,11 +12,20 @@ def _string_to_table(st):
     lines = st.split('\n')
     for i, line in enumerate(lines):
         for j, character in enumerate(line):
+            value = None
             if character.isdigit():
-                _logger.info('Setting (%s, %s) to %s based on provided table',
-                             i, j, character)
+                value = int(character)
+            elif character.isalpha():
+                value = int(character, 16)
+            elif character == '.':
+                pass
+            else:
+                raise Exception("wasn't sure what to do with %s" % character)
+            _logger.info('Setting (%s, %s) to %s based on provided table',
+                            i, j, character)
+            if value is not None:
                 try:
-                    table.set(i, j, int(character))
+                    table.set(i, j, value)
                 except Exception:
                     _logger.exception('Something bad happened when building the provided table')
                     _logger.info('Table was:\n%s\n', str(table))
@@ -182,6 +191,52 @@ class TestGames(unittest.TestCase):
         print table
         assert table.solved()
         table.validate()
+
+
+class Test4x4(unittest.TestCase):
+    def setUp(self):
+        Sudoku.SIZE = 4
+        Sudoku.SIZE2 = 16
+        Sudoku.MIN = 0
+        Sudoku.MAX = 15
+
+    def tearDown(self):
+        Sudoku.SIZE = 3
+        Sudoku.SIZE2 = 9
+        Sudoku.MIN = 1
+
+    def test_4x4_game_00(self):
+        table = Table()
+        print table
+        assert not table.solved()
+
+    def test_4x4_game_01(self):
+        table = _string_to_table(
+            'b.78|.5e.|3..a|d.c0\n'
+            '..4.|.7..|.c.f|a..2\n'
+            'a...|....|...4|37..\n'
+            '..5.|..9f|....|...8\n'
+            '----+----+----+----\n'
+            '.4..|b8..|.e.7|93..\n'
+            '..e3|7c..|..fd|b..4\n'
+            '9f.7|..5d|.3..|..8.\n'
+            '5..d|.f3.|24a8|c.0.\n'
+            '----+----+----+----\n'
+            '.8..|....|b...|.0d5\n'
+            '..d.|....|.8..|f.e.\n'
+            '..a.|9.f.|.67.|..bc\n'
+            '...c|.ab.|...e|724.\n'
+            '----+----+----+----\n'
+            '7a.9|.b1.|..5.|.63.\n'
+            'd.ce|f.7.|a...|.8..\n'
+            '....|e.a.|.d..|5...\n'
+            '.635|09c.|.b..|e...'
+        )
+        print table
+
+        assert table.solved()
+        table.validate()
+
 
 
 class Test1x1(unittest.TestCase):

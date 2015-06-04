@@ -31,6 +31,11 @@ class SudokuLogicException(Exception):
 class Sudoku(object):
     SIZE = 3
     SIZE2 = 9
+    MIN = 1
+
+    @classmethod
+    def digits(cls):
+        return range(Sudoku.MIN, Sudoku.SIZE2 + Sudoku.MIN)
 
 
 class Table(object):
@@ -100,7 +105,7 @@ class Table(object):
             new_rows.append(new_row)
             for cell in cell_row:
                 new_cell = Cell()
-                if cell.value:
+                if cell.value is not None:
                     new_cell.value = cell.value
                 new_cell.potential_values = list(cell.potential_values)
                 new_row.append(new_cell)
@@ -108,7 +113,7 @@ class Table(object):
 
     def set(self, row, column, value):
         cell = self[row][column]
-        if cell.value:
+        if cell.value is not None:
             if value != cell.value:
                 raise SudokuLogicException(cell, value)
             else:
@@ -261,7 +266,7 @@ class Region(object):
         return all(self)
 
     def validate(self):
-        required_values = range(1, Sudoku.SIZE2 + 1)
+        required_values = Sudoku.digits()
         actual_values = sorted([cell.value for cell in self])
         assert actual_values == required_values, actual_values
 
@@ -276,7 +281,7 @@ class Region(object):
 
     def find_single_candidates(self, values=None):
         if values is None:
-            values = range(1, Sudoku.SIZE2 + 1)
+            values = Sudoku.digits()
         results = {}
         for value in values:
             candidates = self.candidates(value)
@@ -294,7 +299,7 @@ class Region(object):
 
     def find_candidate_subregions(self, values=None):
         if values is None:
-            values = range(1, Sudoku.SIZE2 + 1)
+            values = Sudoku.digits()
         for value in values:
             # separate subregions by type
             subregions_by_type = defaultdict(list)
@@ -462,10 +467,10 @@ class Section(Region):
 class Cell(object):
     def __init__(self, value=None):
         self._value = value
-        if value:
+        if value is not None:
             self.potential_values = [value]
         else:
-            self.potential_values = range(1, (Sudoku.SIZE2) + 1)
+            self.potential_values = Sudoku.digits()
         self._row_ref = lambda: None
         self._subrow_ref = lambda: None
         self._column_ref = lambda: None
@@ -473,13 +478,13 @@ class Cell(object):
         self._section_ref = lambda: None
 
     def __str__(self):
-        return str(self.value) if self.value else '.'
+        return '%x' % self.value if self.value is not None else '.'
 
     def __repr__(self):
         return 'Cell(value=%s)' % self._value
 
     def __nonzero__(self):
-        return bool(self._value)
+        return self._value is not None
 
     def index(self):
         return self.column.index(self), self.row.index(self)
@@ -490,7 +495,7 @@ class Cell(object):
 
     @value.setter
     def value(self, value):
-        if self._value:
+        if self._value is not None:
             raise Exception('cell value already set to %s (attempted to set %s)' % (self._value, value))
         elif value not in self.potential_values:
             raise Exception('invalid value %s (potential values are %s)' %

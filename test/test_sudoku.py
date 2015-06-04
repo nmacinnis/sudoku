@@ -184,6 +184,27 @@ class TestGames(unittest.TestCase):
         table.validate()
 
 
+class Test1x1(unittest.TestCase):
+    def setUp(self):
+        Sudoku.SIZE = 1
+        Sudoku.SIZE2 = 1
+
+    def tearDown(self):
+        Sudoku.SIZE = 3
+        Sudoku.SIZE2 = 9
+
+    def test_1x1_game_00(self):
+        table = _string_to_table(
+            '.'
+        )
+        print table
+        assert not table.solved()
+        table.solve()
+        print table
+        assert table.solved()
+        table.validate()
+
+
 class Test2x2(unittest.TestCase):
     def setUp(self):
         Sudoku.SIZE = 2

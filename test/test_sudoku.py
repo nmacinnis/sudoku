@@ -1,6 +1,6 @@
 import unittest
 
-from sudoku import Sudoku, Cell, Region, Row, Column, Section, Table
+from sudoku import Sudoku, Cell, Region, Row, Column, Section, Table, _logger
 
 
 def _string_to_table(st):
@@ -13,11 +13,13 @@ def _string_to_table(st):
     for i, line in enumerate(lines):
         for j, character in enumerate(line):
             if character.isdigit():
-                print i, j, character
+                _logger.info('Setting (%s, %s) to %s based on provided table',
+                             i, j, character)
                 try:
                     table.set(i, j, int(character))
-                except:
-                    print table
+                except Exception:
+                    _logger.exception('Something bad happened when building the provided table')
+                    _logger.info('Table was:\n%s\n', str(table))
                     raise
     return table
 
@@ -131,13 +133,12 @@ class TestGames(unittest.TestCase):
         )
 
         table.solve()
-        assert not table.solved()
+        if not table.solved():
+            print 'ok trying brute force'
+            print table
+            print 'here goes'
 
-        print 'ok trying brute force'
-        print table
-        print 'here goes'
-
-        table.brute_force()
+            table.brute_force()
 
         assert table.solved()
         table.validate()
@@ -181,11 +182,9 @@ class TestGames(unittest.TestCase):
 
             table.brute_force()
 
+        print table
         assert table.solved()
         table.validate()
-
-        print table
-        assert False
 
 
 class Test2x2(unittest.TestCase):

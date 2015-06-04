@@ -1,7 +1,12 @@
 #! /usr/bin/env python
+import logging
 import weakref
 
 from collections import defaultdict
+
+
+_logger = logging.getLogger()
+logging.basicConfig()
 
 
 def _split(l):
@@ -18,10 +23,21 @@ def _splitvertical(l):
     ]
 
 
+class SudokuLogicException(Exception):
+    def __init__(self, cell, value):
+        super(SudokuLogicException, self).__init__(
+            'Exception when attempting to set %s with value %s and possible values %s to %s' % (
+                cell.index(),
+                cell.value,
+                cell.potential_values,
+                value
+            )
+        )
+
+
 class Sudoku(object):
     SIZE = 3
     SIZE2 = 9
-    uid = 0
     brute_force_attempts = 0
 
 
@@ -102,16 +118,14 @@ class Table(object):
         cell = self[row][column]
         if cell.value:
             if value != cell.value:
-                print 'attempted setting', row, column, value
-                raise Exception(
-                    "something bad because value was already %s" % cell.value)
-            return
-        if cell.potential_values == []:
-            print "this is weird, cell %s %s has no potential values %s and its value is %s" % (row, column, cell.potential_values, cell.value)
+                raise SudokuLogicException(cell, value)
+            else:
+                # nothing to do here
+                return
         if value not in cell.potential_values:
-            raise Exception("invalid situation here, can't set %s %s %s because potential values are only %s" % (row, column, value, cell.potential_values))
-        print 'setting', row, column, value
-        print 'ok values are', cell.potential_values
+                raise SudokuLogicException(cell, value)
+        _logger.debug('Setting %s to %s (possible values were %s)',
+                      cell.index(), value, cell.potential_values)
         cleared_values = list(cell.potential_values)
         cleared_values.remove(value)
         cell.value = value
@@ -120,6 +134,7 @@ class Table(object):
         # first, clear this value from cell's mates
         affected_cells = [each_cell for each_cell in cell.mates if value in each_cell.potential_values]
         for affected_cell in affected_cells:
+            _logger.debug('Clearing possible value %s from %s due to value set', value, affected_cell.index())
             affected_cell.clear_potential_value(value)
 
         # first.5 find cleared subregions
@@ -134,12 +149,16 @@ class Table(object):
         }
         if cleared_cells:
             for cleared_cell, cleared_value in cleared_cells.items():
-                print "calculated by finding the last potential values", cleared_cell.index(), cleared_value
+                if cleared_cell not in calculated_sets:
+                    _logger.debug('Calculated value %s for %s by eliminating other values', cleared_value, cleared_cell.index())
         calculated_sets.update(cleared_cells)
 
         # third, check cell's regions for cleared values
         for region in [cell.row, cell.column, cell.section]:
             single_candidates = region.find_single_candidates()
+            for cleared_cell, cleared_value in single_candidates.items():
+                if cleared_cell not in calculated_sets:
+                    _logger.debug('Calculated value %s for %s by eliminating other cells', cleared_value, cleared_cell.index())
             calculated_sets.update(single_candidates)
 
         # fourth, perform calculated sets
@@ -168,30 +187,43 @@ class Table(object):
             else:
                 return
 
-    def brute_force(self):
+    def brute_force(self, level=0):
+        if level > 10:
+            _logger.fatal("We've gone too deep.")
+            raise Exception("We've gone too deep.")
+        _logger.info(
+            "Ran out of ideas, resorting to brute force. Level=%s", level)
         for row in self:
             for cell in row:
                 if not cell.value:
                     for potential_value in cell.potential_values:
                         new_table = self.copy()
                         try:
-                            print "testing a value"
-                            print new_table
+                            _logger.info(
+                                "Testing value %s for %s. Current table is \n%s\n",
+                                potential_value,
+                                cell.index(),
+                                str(self)
+                            )
                             index = cell.index()
                             new_table.set(index[0], index[1], potential_value)
                             new_table.solve()
-                            print "recursion!", Sudoku.brute_force_attempts
-                            new_table.brute_force()
-                        except Exception, e:
-                            print 'attempted to set', index[
-                                0], index[1], potential_value
-                            print e
-                            print new_table
-                            print ''
-                            Sudoku.brute_force_attempts += 1
-                            if Sudoku.brute_force_attempts > 10:
-                                raise
+                            if not new_table.solved():
+                                _logger.info("More brute force!")
+                                new_table.brute_force(level + 1)
+                        except SudokuLogicException, e:
+                            _logger.error(
+                                "Tested value %s for %s and found it lacking.",
+                                potential_value,
+                                cell.index()
+                            )
+                            _logger.error("Error was: %s", str(e))
+                            _logger.error("Resulting table was: \n%s\n",
+                                          str(new_table)
+                                          )
                         if new_table.solved():
+                            _logger.info("Brute force identified a solution!")
+                            _logger.info('\n%s\n', str(new_table))
                             self.rows = new_table.rows
                             self.columns = new_table.columns
                             self.sections = new_table.sections
@@ -201,9 +233,6 @@ class Table(object):
 class Region(object):
     def __init__(self, cells=None):
         self.cells = cells or [Cell() for cell in xrange(Sudoku.SIZE2)]
-        Sudoku.uid += 1
-        self.uid = Sudoku.uid
-        #print "region of type", type(self), "generated with id", self.uid
 
     def __str__(self):
         return ''.join([str(cell) for cell in self])
@@ -253,21 +282,20 @@ class Region(object):
             candidates = self.candidates(value)
             if len(candidates) == 1:
                 results[candidates[0]] = value
-                #print self, 'found single candidate', candidates[
-                #    0].index(), candidates[0].potential_values
 
         return results
 
     def restrict_value_to_subregion(self, value, subregion):
         for sibling in subregion.siblings():
             for cell in sibling:
+                if value in cell.potential_values:
+                    _logger.debug('Clearing possible value %s from %s due to subregion exclusion', value, cell.index())
                 cell.clear_potential_value(value)
 
     def find_candidate_subregions(self, values=None):
         if values is None:
             values = range(1, Sudoku.SIZE2 + 1)
         for value in values:
-            #print type(self), self.uid, repr(str(self)), 'checking for candidate subregions for', value
             # separate subregions by type
             subregions_by_type = defaultdict(list)
             for subregion in self.subregions():
@@ -277,7 +305,6 @@ class Region(object):
                     lambda subregion: len(subregion.candidates(value)) > 0,
                     subregions
                 )
-                #print 'candidate subregions', candidate_subregions
                 if len(candidate_subregions) == 1:
                     self.restrict_value_to_subregion(
                         value, candidate_subregions[0])

@@ -25,9 +25,6 @@ def _string_to_table(st):
 
 
 class TestGames(unittest.TestCase):
-    def tearDown(self):
-        Sudoku.uid = 0
-
     def test_game_00(self):
         table = _string_to_table(
             '...|...|...\n'
@@ -195,7 +192,6 @@ class Test2x2(unittest.TestCase):
     def tearDown(self):
         Sudoku.SIZE = 3
         Sudoku.SIZE2 = 9
-        Sudoku.uid = 0
 
     def test_2x2_game_00(self):
         Sudoku.SIZE = 2
@@ -225,9 +221,6 @@ class Test2x2(unittest.TestCase):
 
 
 class TestTable(unittest.TestCase):
-    def tearDown(self):
-        Sudoku.uid = 0
-
     def test_str(self):
         exp = \
             "...|...|...\n" \
@@ -372,9 +365,6 @@ class TestTable(unittest.TestCase):
 
 
 class TestRegion(unittest.TestCase):
-    def tearDown(self):
-        Sudoku.uid = 0
-
     def test_region_solved(self):
         cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
 
@@ -427,9 +417,6 @@ class TestRegion(unittest.TestCase):
 
 
 class TestCell(unittest.TestCase):
-    def tearDown(self):
-        Sudoku.uid = 0
-
     def test_cell_value_immutable(self):
         cell = Cell(value=1)
         self.assertRaises(Exception, setattr, cell.value, 2)
@@ -442,9 +429,6 @@ class TestCell(unittest.TestCase):
 
 
 class TestRow(unittest.TestCase):
-    def tearDown(self):
-        Sudoku.uid = 0
-
     def test_str(self):
         cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
         row = Row(cells)
@@ -459,9 +443,6 @@ class TestRow(unittest.TestCase):
 
 
 class TestColumn(unittest.TestCase):
-    def tearDown(self):
-        Sudoku.uid = 0
-
     def test_str(self):
         cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
         column = Column(cells)
@@ -476,9 +457,6 @@ class TestColumn(unittest.TestCase):
 
 
 class TestSection(unittest.TestCase):
-    def tearDown(self):
-        Sudoku.uid = 0
-
     def test_str(self):
         cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
         section = Section(cells)

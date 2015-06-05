@@ -70,6 +70,15 @@ class Table(object):
             ]) for multirow in _split(self.rows)
         ])
 
+    def display_potential_values(self):
+        row_divider = '\n' + '+'.join(['+'.join(_split('~' * Sudoku.SIZE2))] * Sudoku.SIZE) + '\n'
+        section_divider = '\n' + '+'.join(['+'.join(_split('-' * Sudoku.SIZE2))] * Sudoku.SIZE) + '\n'
+        return section_divider.join([
+            row_divider.join([
+                row.display_potential_values() for row in section
+            ]) for section in _split(self.rows)
+        ])
+
     def __repr__(self):
         return 'Table(cells=%s)' % repr(self.cells)
 
@@ -359,6 +368,20 @@ class Row(AbstractRow):
     def subregions(self):
         return self.subrows
 
+    def display_potential_values(self):
+        return '\n'.join([
+            '|'.join(['~'.join(parts) for parts in line])
+            for line in [
+                _split(cell_value_row) for cell_value_row in
+                zip(*[
+                    cell_display_values.split('\n')
+                    for cell_display_values in [
+                        cell.display_potential_values() for cell in self.cells
+                    ]
+                ])
+            ]
+        ])
+
 
 class Subrow(Subregion, AbstractRow):
     def __init__(self, cells=None):
@@ -578,9 +601,7 @@ class Cell(object):
 
     def display_potential_values(self):
         values = [
-            (str(digit)
-             if (digit in self.potential_values or digit == self.value)
-             else ' ')
+            str(digit) if digit in self.potential_values else ' '
             for digit in Sudoku.digits()
         ]
         return '\n'.join([

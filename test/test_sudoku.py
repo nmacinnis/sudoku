@@ -66,7 +66,7 @@ class TestGames(unittest.TestCase):
             '..3|7..|1.4'
         )
 
-        print table
+        _logger.info("\n%s\n", str(table))
         assert table.solved()
         table.validate()
 
@@ -85,7 +85,7 @@ class TestGames(unittest.TestCase):
             '...|..9|6..'
         )
 
-        print table
+        _logger.info("\n%s\n", str(table))
         assert table.solved()
         table.validate()
 
@@ -104,7 +104,7 @@ class TestGames(unittest.TestCase):
             '.9.|.5.|..1'
         )
 
-        print table
+        _logger.info("\n%s\n", str(table))
         assert table.solved()
         table.validate()
 
@@ -138,14 +138,10 @@ class TestGames(unittest.TestCase):
             '..6|...|9..'
         )
 
-        table.solve()
-        if not table.solved():
-            print 'ok trying brute force'
-            print table
-            print 'here goes'
-
-            table.brute_force()
-
+        _logger.info("\n%s\n", str(table))
+        slns = table.brute_force()
+        for sln in slns:
+            _logger.info("\n%s\n", str(sln))
         assert table.solved()
         table.validate()
 
@@ -181,14 +177,7 @@ class TestGames(unittest.TestCase):
 
         table.solve()
 
-        if not table.solved():
-            print 'ok trying brute force'
-            print table
-            print 'here goes'
-
-            table.brute_force()
-
-        print table
+        _logger.info("\n%s\n", str(table))
         assert table.solved()
         table.validate()
 
@@ -207,7 +196,7 @@ class Test4x4(unittest.TestCase):
 
     def test_4x4_game_00(self):
         table = Table()
-        print table
+        _logger.info("\n%s\n", str(table))
         assert not table.solved()
 
     def test_4x4_game_01(self):
@@ -232,11 +221,10 @@ class Test4x4(unittest.TestCase):
             '....|e.a.|.d..|5...\n'
             '.635|09c.|.b..|e...'
         )
-        print table
+        _logger.info("\n%s\n", str(table))
 
         assert table.solved()
         table.validate()
-
 
 
 class Test1x1(unittest.TestCase):
@@ -252,10 +240,10 @@ class Test1x1(unittest.TestCase):
         table = _string_to_table(
             '.'
         )
-        print table
+        _logger.info("\n%s\n", str(table))
         assert not table.solved()
         table.solve()
-        print table
+        _logger.info("\n%s\n", str(table))
         assert table.solved()
         table.validate()
 
@@ -270,8 +258,6 @@ class Test2x2(unittest.TestCase):
         Sudoku.SIZE2 = 9
 
     def test_2x2_game_00(self):
-        Sudoku.SIZE = 2
-        Sudoku.SIZE2 = 4
         table = _string_to_table(
             '..|..\n'
             '..|..\n'
@@ -279,12 +265,10 @@ class Test2x2(unittest.TestCase):
             '..|..\n'
             '..|..'
         )
-        print table
+        _logger.info("\n%s\n", str(table))
         assert not table.solved()
 
     def test_2x2_game_01(self):
-        Sudoku.SIZE = 2
-        Sudoku.SIZE2 = 4
         table = _string_to_table(
             '12|3.\n'
             '3.|1.\n'
@@ -292,8 +276,40 @@ class Test2x2(unittest.TestCase):
             '2.|..\n'
             '..|.3'
         )
-        print table
+        _logger.info("\n%s\n", str(table))
         assert table.solved()
+
+    def test_brute_force(self):
+        table = _string_to_table(
+            '12|3.\n'
+            '3.|1.\n'
+            '--+--\n'
+            '2.|..\n'
+            '..|..'
+        )
+        _logger.info("\n%s\n", str(table))
+        slns = table.brute_force()
+        for sln in slns:
+            _logger.info("\n%s\n", str(sln))
+        assert table.solved()
+        table.validate()
+        assert len(slns) == 2
+
+    def test_extra_brute_force(self):
+        table = _string_to_table(
+            '12|3.\n'
+            '3.|1.\n'
+            '--+--\n'
+            '..|..\n'
+            '..|..'
+        )
+        _logger.info("\n%s\n", str(table))
+        slns = table.brute_force()
+        for sln in slns:
+            _logger.info("\n%s\n", str(sln))
+        assert table.solved()
+        table.validate()
+        assert len(slns) == 4
 
 
 class TestTable(unittest.TestCase):
@@ -323,7 +339,7 @@ class TestTable(unittest.TestCase):
     def test_columns(self):
         table = Table()
         columns = table.columns
-        print table
+        _logger.info("\n%s\n", str(table))
         assert columns[0][0] is table[0][0]
         assert columns[0][1] is table[1][0]
         assert columns[1][0] is table[0][1]
@@ -332,7 +348,7 @@ class TestTable(unittest.TestCase):
         table = Table()
         sections = table.sections
         sections[0][3].value = 3
-        print table
+        _logger.info("\n%s\n", str(table))
 
         assert sections[0][0] is table[0][0]
         assert sections[0][1] is table[0][1]
@@ -482,12 +498,11 @@ class TestRegion(unittest.TestCase):
             '...|...|...'
         )
 
-        print table
+        _logger.info("\n%s\n", str(table))
         for cell in table.rows[2][1:2]:
             self.assertEquals([8, 9], cell.potential_values)
 
         for cell in table.rows[2][3:]:
-            print cell.potential_values
             assert 8 not in cell.potential_values
             assert 9 not in cell.potential_values
 

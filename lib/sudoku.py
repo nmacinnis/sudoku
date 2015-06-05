@@ -111,6 +111,14 @@ class Table(object):
                 new_row.append(new_cell)
         return Table(cells=new_rows)
 
+    def copy_from(self, other_table):
+        for r, row in enumerate(self.rows):
+            other_row = other_table.rows[r]
+            for c, cell in enumerate(row.cells):
+                other_cell = other_row.cells[c]
+                if cell.value is None:
+                    cell.value = other_cell.value
+
     def set(self, row, column, value):
         cell = self[row][column]
         if cell.value is not None:
@@ -198,41 +206,43 @@ class Table(object):
             raise Exception("We've gone too deep.")
         _logger.info(
             "Ran out of ideas, resorting to brute force. Level=%s", level)
-        for row in self:
-            for cell in row:
-                if not cell.value:
-                    for potential_value in cell.potential_values:
-                        new_table = self.copy()
-                        try:
-                            _logger.info(
-                                "Testing value %s for %s. Current table is \n%s\n",
-                                potential_value,
-                                cell.index(),
-                                str(self)
-                            )
-                            index = cell.index()
-                            new_table.set(index[0], index[1], potential_value)
-                            new_table.solve()
-                            if not new_table.solved():
-                                _logger.info("More brute force!")
-                                new_table.brute_force(level + 1)
-                        except SudokuLogicException, e:
-                            _logger.error(
-                                "Tested value %s for %s and found it lacking.",
-                                potential_value,
-                                cell.index()
-                            )
-                            _logger.error("Error was: %s", str(e))
-                            _logger.error("Resulting table was: \n%s\n",
-                                          str(new_table)
-                                          )
-                        if new_table.solved():
-                            _logger.info("Brute force identified a solution!")
-                            _logger.info('\n%s\n', str(new_table))
-                            self.rows = new_table.rows
-                            self.columns = new_table.columns
-                            self.sections = new_table.sections
-                            return
+        solutions = []
+        # find an unsolved cell
+        unsolved_row = filter(lambda row: not row.solved(), self.rows)[0]
+        cell = filter(lambda cell: cell.value is None, unsolved_row)[0]
+        for potential_value in cell.potential_values:
+            new_table = self.copy()
+            try:
+                _logger.info(
+                    "Testing value %s for %s. Current table is \n%s\n",
+                    potential_value,
+                    cell.index(),
+                    str(self)
+                )
+                index = cell.index()
+                new_table.set(index[0], index[1], potential_value)
+                new_table.solve()
+                if new_table.solved():
+                    _logger.info("Brute force identified a solution!")
+                    _logger.error("\n%s\n", str(new_table))
+                    solutions.append(new_table)
+                else:
+                    _logger.info("More brute force!")
+                    solutions += new_table.brute_force(level + 1)
+            except SudokuLogicException, e:
+                _logger.error(
+                    "Tested value %s for %s and found it lacking.",
+                    potential_value,
+                    cell.index()
+                )
+                _logger.error("Error was: %s", str(e))
+                _logger.error("Resulting table was: \n%s\n",
+                                str(new_table)
+                                )
+        _logger.info('%s solutions found at %s levels of recursion', len(solutions), level)
+        if solutions:
+            self.copy_from(solutions[0])
+        return solutions
 
 
 class Region(object):

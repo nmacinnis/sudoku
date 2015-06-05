@@ -237,9 +237,10 @@ class Table(object):
                 )
                 _logger.error("Error was: %s", str(e))
                 _logger.error("Resulting table was: \n%s\n",
-                                str(new_table)
-                                )
-        _logger.info('%s solutions found at %s levels of recursion', len(solutions), level)
+                              str(new_table)
+                              )
+        _logger.info('%s solutions found at %s levels of recursion',
+                     len(solutions), level)
         if solutions:
             self.copy_from(solutions[0])
         return solutions
@@ -574,6 +575,17 @@ class Cell(object):
     @property
     def mates(self):
         return set(self.row.cells + self.column.cells + self.section.cells)
+
+    def display_potential_values(self):
+        values = [
+            (str(digit)
+             if (digit in self.potential_values or digit == self.value)
+             else ' ')
+            for digit in Sudoku.digits()
+        ]
+        return '\n'.join([
+            ''.join(row) for row in _split(values)
+        ])
 
 
 if __name__ == '__main__':

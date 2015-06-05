@@ -22,7 +22,7 @@ def _string_to_table(st):
             else:
                 raise Exception("wasn't sure what to do with %s" % character)
             _logger.info('Setting (%s, %s) to %s based on provided table',
-                            i, j, character)
+                         i, j, character)
             if value is not None:
                 try:
                     table.set(i, j, value)
@@ -517,6 +517,34 @@ class TestCell(unittest.TestCase):
         for i in xrange(1, Sudoku.SIZE2):
             cell.clear_potential_value(i)
         assert cell.potential_values == [9]
+
+    def test_display_potential_values_default(self):
+        cell = Cell()
+        result = cell.display_potential_values()
+        self.assertEquals('123\n'
+                          '456\n'
+                          '789', result)
+        _logger.info('\n%s\n', result)
+
+    def test_display_potential_values_partial(self):
+        cell = Cell()
+        cell.clear_potential_value(1)
+        cell.clear_potential_value(5)
+        cell.clear_potential_value(9)
+        result = cell.display_potential_values()
+        self.assertEquals(' 23\n'
+                          '4 6\n'
+                          '78 ', result)
+        _logger.info('\n%s\n', result)
+
+    def test_display_potential_values_full(self):
+        cell = Cell()
+        cell.value = 5
+        result = cell.display_potential_values()
+        self.assertEquals('   \n'
+                          ' 5 \n'
+                          '   ', result)
+        _logger.info('\n%s\n', result)
 
 
 class TestRow(unittest.TestCase):

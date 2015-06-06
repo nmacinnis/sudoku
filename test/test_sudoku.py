@@ -138,10 +138,9 @@ class TestGames(unittest.TestCase):
             '..6|...|9..'
         )
 
+        table.really_solve()
+
         _logger.info("\n%s\n", str(table))
-        slns = table.brute_force()
-        for sln in slns:
-            _logger.info("\n%s\n", str(sln))
         assert table.solved()
         table.validate()
 
@@ -176,6 +175,50 @@ class TestGames(unittest.TestCase):
         )
 
         table.solve()
+
+        _logger.info("\n%s\n", str(table))
+        assert table.solved()
+        table.validate()
+
+    def test_game_06(self):
+        table = _string_to_table(
+            '85.|..2|4..\n'
+            '72.|...|..9\n'
+            '..4|...|...\n'
+            '---+---+---\n'
+            '...|1.7|..2\n'
+            '3.5|...|9..\n'
+            '.4.|...|...\n'
+            '---+---+---\n'
+            '...|.8.|.7.\n'
+            '.17|...|...\n'
+            '...|.36|.4.'
+        )
+        # supposedly this one is hard
+
+        table.solve()
+
+        _logger.info("\n%s\n", str(table))
+        assert table.solved()
+        table.validate()
+
+    def test_game_07(self):
+        table = _string_to_table(
+            '..5|3..|...\n'
+            '8..|...|.2.\n'
+            '.7.|.1.|5..\n'
+            '---+---+---\n'
+            '4..|..5|3..\n'
+            '.1.|.7.|..6\n'
+            '..3|2..|.8.\n'
+            '---+---+---\n'
+            '.6.|5..|..9\n'
+            '..4|...|.3.\n'
+            '...|..9|7..'
+        )
+        # supposedly this one is hard too
+
+        table.really_solve()
 
         _logger.info("\n%s\n", str(table))
         assert table.solved()
@@ -287,29 +330,12 @@ class Test2x2(unittest.TestCase):
             '2.|..\n'
             '..|..'
         )
-        _logger.info("\n%s\n", str(table))
-        slns = table.brute_force()
-        for sln in slns:
-            _logger.info("\n%s\n", str(sln))
-        assert table.solved()
-        table.validate()
-        assert len(slns) == 2
 
-    def test_extra_brute_force(self):
-        table = _string_to_table(
-            '12|3.\n'
-            '3.|1.\n'
-            '--+--\n'
-            '..|..\n'
-            '..|..'
-        )
+        table.really_solve()
+
         _logger.info("\n%s\n", str(table))
-        slns = table.brute_force()
-        for sln in slns:
-            _logger.info("\n%s\n", str(sln))
         assert table.solved()
         table.validate()
-        assert len(slns) == 4
 
 
 class TestTable(unittest.TestCase):
@@ -542,7 +568,7 @@ class TestCell(unittest.TestCase):
         cell.value = 5
         result = cell.display_potential_values()
         self.assertEquals('   \n'
-                          ' 5 \n'
+                          '   \n'
                           '   ', result)
         _logger.info('\n%s\n', result)
 

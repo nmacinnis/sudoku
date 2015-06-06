@@ -62,6 +62,8 @@ class Table(object):
         self.sections = [Section(cells=_sections[i])
                          for i in xrange(Sudoku.SIZE2)]
 
+        self.regions = self.rows + self.columns + self.sections
+
     def __str__(self):
         divider = '\n' + '+'.join(_split('-' * Sudoku.SIZE2)) + '\n'
         return divider.join([
@@ -71,8 +73,10 @@ class Table(object):
         ])
 
     def display_potential_values(self):
-        row_divider = '\n' + '+'.join(['+'.join(_split('~' * Sudoku.SIZE2))] * Sudoku.SIZE) + '\n'
-        section_divider = '\n' + '+'.join(['+'.join(_split('-' * Sudoku.SIZE2))] * Sudoku.SIZE) + '\n'
+        row_divider = '\n' + '+'.join(
+            ['+'.join(_split('~' * Sudoku.SIZE2))] * Sudoku.SIZE) + '\n'
+        section_divider = '\n' + '+'.join(
+            ['+'.join(_split('-' * Sudoku.SIZE2))] * Sudoku.SIZE) + '\n'
         return section_divider.join([
             row_divider.join([
                 row.display_potential_values() for row in section
@@ -153,7 +157,8 @@ class Table(object):
 
         # first.5 find cleared subregions
         for region in [cell.row, cell.column, cell.section]:
-            region.find_candidate_subregions()
+            region.find_and_clear_restricted_subregions()
+            region.find_and_restrict_dependent_cell_sets()
 
         # second, check cell's mates for cleared cells
         cleared_cells = {
@@ -193,29 +198,38 @@ class Table(object):
 
     def solve(self):
         while not self.solved():
+            _logger.info("Table not solved yet, trying some things.")
             # clear any remaining single candidates
             calculated_sets = {}
-            for row in self.rows:
-                row.find_candidate_subregions()
-                calculated_sets.update(row.find_single_candidates())
-            for column in self.columns:
-                column.find_candidate_subregions()
-                calculated_sets.update(column.find_single_candidates())
-            for section in self.sections:
-                section.find_candidate_subregions()
-                calculated_sets.update(section.find_single_candidates())
+            cleared_something = False
+            for region in self.regions:
+                if region.find_and_clear_restricted_subregions():
+                    cleared_something = True
+                if region.find_and_restrict_dependent_cell_sets():
+                    cleared_something = True
+                calculated_sets.update(region.find_single_candidates())
+                #_logger.debug("hrm %s", region.identify_cell_pairs())
+            _logger.debug(calculated_sets)
+            _logger.debug(cleared_something)
             if calculated_sets:
                 self.perform_sets(calculated_sets)
+            elif cleared_something:
+                # made progress, keep going
+                pass
             else:
                 return
+
+    def really_solve(self):
+        self.solve()
+        if not self.solved():
+            _logger.info("Ran out of ideas, resorting to brute force.")
+            self.brute_force()
 
     def brute_force(self, level=0):
         if level > 10:
             _logger.fatal("We've gone too deep.")
             raise Exception("We've gone too deep.")
-        _logger.info(
-            "Ran out of ideas, resorting to brute force. Level=%s", level)
-        solutions = []
+        _logger.info("Starting brute force search. Level=%s", level)
         # find an unsolved cell
         unsolved_row = filter(lambda row: not row.solved(), self.rows)[0]
         cell = filter(lambda cell: cell.value is None, unsolved_row)[0]
@@ -233,11 +247,14 @@ class Table(object):
                 new_table.solve()
                 if new_table.solved():
                     _logger.info("Brute force identified a solution!")
-                    _logger.error("\n%s\n", str(new_table))
-                    solutions.append(new_table)
                 else:
                     _logger.info("More brute force!")
-                    solutions += new_table.brute_force(level + 1)
+                    new_table.brute_force(level=(level + 1))
+                if new_table.solved():
+                    self.copy_from(new_table)
+                    return
+                else:
+                    _logger.error("No valid solutions down this path. Trying another value")
             except SudokuLogicException, e:
                 _logger.error(
                     "Tested value %s for %s and found it lacking.",
@@ -245,19 +262,15 @@ class Table(object):
                     cell.index()
                 )
                 _logger.error("Error was: %s", str(e))
-                _logger.error("Resulting table was: \n%s\n",
-                              str(new_table)
-                              )
-        _logger.info('%s solutions found at %s levels of recursion',
-                     len(solutions), level)
-        if solutions:
-            self.copy_from(solutions[0])
-        return solutions
+                #_logger.error("Resulting table was: \n%s\n",
+                #              str(new_table)
+                #              )
 
 
 class Region(object):
     def __init__(self, cells=None):
         self.cells = cells or [Cell() for cell in xrange(Sudoku.SIZE2)]
+        self.free_digits = Sudoku.digits()
 
     def __str__(self):
         return ''.join([str(cell) for cell in self])
@@ -301,7 +314,7 @@ class Region(object):
 
     def find_single_candidates(self, values=None):
         if values is None:
-            values = Sudoku.digits()
+            values = self.free_digits
         results = {}
         for value in values:
             candidates = self.candidates(value)
@@ -310,17 +323,68 @@ class Region(object):
 
         return results
 
+    def find_and_restrict_dependent_cell_sets(self):
+        codependency_sets = self.identify_dependent_cell_sets()
+        cleared_something = False
+        for values, cells in codependency_sets.items():
+            result = self.restrict_values_to_cells(values, cells)
+            if result:
+                cleared_something = True
+        return cleared_something
+
+    def identify_dependent_cell_sets(self):
+        results = {}
+        value_candidacy = {}
+        for value in self.free_digits:
+            value_candidacy[value] = set(self.candidates(value))
+        #_logger.info(value_candidacy)
+
+        for value, candidate_cells in value_candidacy.items():
+            # there are n cells i can be in
+            # are there n other values that must be inside those cells?
+            values_that_must_be_in_those_cells = set()
+            cells_those_values_must_be_in = set(candidate_cells)
+            for candidate_cell in candidate_cells:
+                for potential_value in candidate_cell.potential_values:
+                    # what happens if i add you to my party?
+                    potential_cells = value_candidacy[potential_value]
+                    resulting_union = cells_those_values_must_be_in.union(
+                        potential_cells)
+                    if len(resulting_union) == len(self.free_digits):
+                        # this didn't tell us anything
+                        # you can't sit with us!
+                        pass
+                    else:
+                        values_that_must_be_in_those_cells.add(potential_value)
+                        cells_those_values_must_be_in = resulting_union
+            if len(values_that_must_be_in_those_cells) == len(cells_those_values_must_be_in):
+                results[tuple(values_that_must_be_in_those_cells)
+                        ] = cells_those_values_must_be_in
+        return results
+
+    def restrict_values_to_cells(self, values, cells):
+        did_something = False
+        for cell in cells:
+            for potential_value in cell.potential_values:
+                if potential_value not in values:
+                    _logger.debug('Clearing possible value %s from %s due to codependency (must be in %s)', potential_value, cell.index(), values)
+                    cell.clear_potential_value(potential_value)
+                    did_something = True
+        return did_something
+
     def restrict_value_to_subregion(self, value, subregion):
+        cleared_something = False
         for sibling in subregion.siblings():
             for cell in sibling:
                 if value in cell.potential_values:
                     _logger.debug('Clearing possible value %s from %s due to subregion exclusion', value, cell.index())
-                cell.clear_potential_value(value)
+                    cleared_something = True
+                    cell.clear_potential_value(value)
+        return cleared_something
 
-    def find_candidate_subregions(self, values=None):
-        if values is None:
-            values = Sudoku.digits()
-        for value in values:
+    def find_and_clear_restricted_subregions(self):
+        cleared_something = False
+        for value in self.free_digits:
             # separate subregions by type
             subregions_by_type = defaultdict(list)
             for subregion in self.subregions():
@@ -331,8 +395,24 @@ class Region(object):
                     subregions
                 )
                 if len(candidate_subregions) == 1:
-                    self.restrict_value_to_subregion(
-                        value, candidate_subregions[0])
+                    if self.restrict_value_to_subregion(
+                            value, candidate_subregions[0]):
+                        cleared_something = True
+        return cleared_something
+
+    def display_potential_values(self):
+        return '\n'.join([
+            '|'.join([':'.join(parts) for parts in line])
+            for line in [
+                _split(cell_value_row) for cell_value_row in
+                zip(*[
+                    cell_display_values.split('\n')
+                    for cell_display_values in [
+                        cell.display_potential_values() for cell in self.cells
+                    ]
+                    ])
+            ]
+        ])
 
 
 class Subregion(Region):
@@ -367,20 +447,6 @@ class Row(AbstractRow):
 
     def subregions(self):
         return self.subrows
-
-    def display_potential_values(self):
-        return '\n'.join([
-            '|'.join(['~'.join(parts) for parts in line])
-            for line in [
-                _split(cell_value_row) for cell_value_row in
-                zip(*[
-                    cell_display_values.split('\n')
-                    for cell_display_values in [
-                        cell.display_potential_values() for cell in self.cells
-                    ]
-                ])
-            ]
-        ])
 
 
 class Subrow(Subregion, AbstractRow):
@@ -499,12 +565,12 @@ class Section(Region):
 
 
 class Cell(object):
-    def __init__(self, value=None):
+    def __init__(self, value=None, potential_values=None):
         self._value = value
         if value is not None:
-            self.potential_values = [value]
+            self.potential_values = []
         else:
-            self.potential_values = Sudoku.digits()
+            self.potential_values = potential_values or Sudoku.digits()
         self._row_ref = lambda: None
         self._subrow_ref = lambda: None
         self._column_ref = lambda: None
@@ -515,7 +581,7 @@ class Cell(object):
         return '%x' % self.value if self.value is not None else '.'
 
     def __repr__(self):
-        return 'Cell(value=%s)' % self._value
+        return 'Cell(value=%s, potential_values=%s)' % (self._value, self.potential_values)
 
     def __nonzero__(self):
         return self._value is not None
@@ -535,18 +601,11 @@ class Cell(object):
             raise Exception('invalid value %s (potential values are %s)' %
                             (value, repr(self.potential_values)))
         else:
-            if self.row is not None:
-                for cell in self.row:
-                    if value == cell.value:
-                        raise SudokuLogicException(self, value)
-            if self.column is not None:
-                for cell in self.column:
-                    if value == cell.value:
-                        raise SudokuLogicException(self, value)
-            if self.section is not None:
-                for cell in self.section:
-                    if value == cell.value:
-                        raise SudokuLogicException(self, value)
+            for region in self.regions():
+                if value not in region.free_digits:
+                    raise SudokuLogicException(self, value)
+            for region in self.regions():
+                region.free_digits.remove(value)
         self._value = value
         self.potential_values = []
 
@@ -554,6 +613,9 @@ class Cell(object):
         if value not in self.potential_values:
             return
         self.potential_values.remove(value)
+
+    def regions(self):
+        return filter(lambda region: region is not None, [self.row, self.column, self.section])
 
     @property
     def row(self):

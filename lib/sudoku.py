@@ -129,8 +129,7 @@ class Table(object):
             other_row = other_table.rows[r]
             for c, cell in enumerate(row.cells):
                 other_cell = other_row.cells[c]
-                if cell.value is None:
-                    cell.value = other_cell.value
+                cell.value = other_cell.value
 
     def set(self, row, column, value):
         cell = self[row][column]
@@ -587,6 +586,8 @@ class Cell(object):
 
     @value.setter
     def value(self, value):
+        if value == self.value:
+            return
         if self._value is not None:
             raise SudokuLogicException(self, value)
         elif value not in self.potential_values:

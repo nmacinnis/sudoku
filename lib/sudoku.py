@@ -358,7 +358,8 @@ class Region(object):
         for cell in cells:
             for potential_value in cell.potential_values:
                 if potential_value not in values:
-                    _logger.debug('Clearing possible value %s from %s due to codependency (must be in %s)', potential_value, cell.index(), values)
+                    _logger.debug('Clearing possible value %s from %s due to codependency (must be in %s)',
+                                  potential_value, cell.index(), values)
                     cell.clear_potential_value(potential_value)
                     did_something = True
         return did_something

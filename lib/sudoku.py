@@ -134,14 +134,8 @@ class Table(object):
 
     def set(self, row, column, value):
         cell = self[row][column]
-        if cell.value is not None:
-            if value != cell.value:
-                raise SudokuLogicException(cell, value)
-            else:
-                # nothing to do here
-                return
-        if value not in cell.potential_values:
-                raise SudokuLogicException(cell, value)
+        if cell.value == value:
+            return
         _logger.debug('Setting %s to %s (possible values were %s)',
                       cell.index(), value, cell.potential_values)
         cell.value = value
@@ -594,10 +588,9 @@ class Cell(object):
     @value.setter
     def value(self, value):
         if self._value is not None:
-            raise Exception('cell value already set to %s (attempted to set %s)' % (self._value, value))
+            raise SudokuLogicException(self, value)
         elif value not in self.potential_values:
-            raise Exception('invalid value %s (potential values are %s)' %
-                            (value, repr(self.potential_values)))
+            raise SudokuLogicException(self, value)
         else:
             for region in self.regions():
                 if value not in region.free_digits:

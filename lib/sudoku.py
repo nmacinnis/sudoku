@@ -144,8 +144,6 @@ class Table(object):
                 raise SudokuLogicException(cell, value)
         _logger.debug('Setting %s to %s (possible values were %s)',
                       cell.index(), value, cell.potential_values)
-        cleared_values = list(cell.potential_values)
-        cleared_values.remove(value)
         cell.value = value
         calculated_sets = {}
 

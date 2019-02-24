@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+from __future__ import print_function
 import logging
 import weakref
 
@@ -246,7 +247,7 @@ class Table(object):
                     return
                 else:
                     _logger.error("No valid solutions down this path. Trying another value")
-            except SudokuLogicException, e:
+            except SudokuLogicException as e:
                 _logger.error(
                     "Tested value %s for %s and found it lacking.",
                     potential_value,
@@ -666,16 +667,16 @@ class Cell(object):
 
 if __name__ == '__main__':
     cell = Cell()
-    print 'cell', cell
+    print('cell', cell)
     row = Row()
-    print 'row', row
+    print('row', row)
     column = Column()
-    print 'column\n', column
+    print('column\n', column)
     section = Section()
-    print 'section\n', section
+    print('section\n', section)
     table = Table()
-    print 'table\n', table
+    print('table\n', table)
     subrow = Subrow()
-    print 'subrow', subrow
+    print('subrow', subrow)
     subcolumn = Subcolumn()
-    print 'subcolumn\n', subcolumn
+    print('subcolumn\n', subcolumn)

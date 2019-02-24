@@ -302,35 +302,38 @@ class Test2x2(unittest.TestCase):
         Sudoku.SIZE2 = 9
 
     def test_2x2_game_00(self):
-        table = _string_to_table(
-            '..|..\n'
-            '..|..\n'
-            '--+--\n'
-            '..|..\n'
-            '..|..'
-        )
+        table = []
+        table.append("..|..")
+        table.append("..|..")
+        table.append("--+--")
+        table.append("..|..")
+        table.append("..|..")
+        table = "\n".join(table)
+        table = _string_to_table(table)
         _logger.info("\n%s\n", table)
         assert not table.solved()
 
     def test_2x2_game_01(self):
-        table = _string_to_table(
-            '12|3.\n'
-            '3.|1.\n'
-            '--+--\n'
-            '2.|..\n'
-            '..|.3'
-        )
+        table = []
+        table.append("12|3.")
+        table.append("3.|1.")
+        table.append("--+--")
+        table.append("2.|..")
+        table.append("..|.3")
+        table = "\n".join(table)
+        table = _string_to_table(table)
         _logger.info("\n%s\n", table)
         assert table.solved()
 
     def test_brute_force(self):
-        table = _string_to_table(
-            '12|3.\n'
-            '3.|1.\n'
-            '--+--\n'
-            '2.|..\n'
-            '..|..'
-        )
+        table = []
+        table.append("12|3.")
+        table.append("3.|1.")
+        table.append("--+--")
+        table.append("2.|..")
+        table.append("..|..")
+        table = "\n".join(table)
+        table = _string_to_table(table)
 
         table.really_solve()
 
@@ -341,18 +344,19 @@ class Test2x2(unittest.TestCase):
 
 class TestTable(unittest.TestCase):
     def test_str(self):
-        exp = \
-            "...|...|...\n" \
-            "...|...|...\n" \
-            "...|...|...\n" \
-            "---+---+---\n" \
-            "...|...|...\n" \
-            "...|...|...\n" \
-            "...|...|...\n" \
-            "---+---+---\n" \
-            "...|...|...\n" \
-            "...|...|...\n" \
+        exp = (
+            "...|...|...\n"
+            "...|...|...\n"
+            "...|...|...\n"
+            "---+---+---\n"
+            "...|...|...\n"
+            "...|...|...\n"
+            "...|...|...\n"
+            "---+---+---\n"
+            "...|...|...\n"
+            "...|...|...\n"
             "...|...|..."
+        )
         res = str(Table())
         self.assertEqual(exp, res)
 
@@ -543,9 +547,7 @@ class TestCell(unittest.TestCase):
     def test_display_potential_values_default(self):
         cell = Cell()
         result = cell.display_potential_values()
-        self.assertEqual("123\n"
-                         "456\n"
-                         "789", result)
+        self.assertEqual("123\n456\n789", result)
         _logger.info("\n%s\n", result)
 
     def test_display_potential_values_partial(self):
@@ -554,18 +556,14 @@ class TestCell(unittest.TestCase):
         cell.clear_potential_value(5)
         cell.clear_potential_value(9)
         result = cell.display_potential_values()
-        self.assertEqual(" 23\n"
-                         "4 6\n"
-                         "78 ", result)
+        self.assertEqual(" 23\n4 6\n78 ", result)
         _logger.info("\n%s\n", result)
 
     def test_display_potential_values_full(self):
         cell = Cell()
         cell.value = 5
         result = cell.display_potential_values()
-        self.assertEqual("   \n"
-                         "   \n"
-                         "   ", result)
+        self.assertEqual("   \n   \n   ", result)
         _logger.info("\n%s\n", result)
 
 
@@ -601,9 +599,12 @@ class TestSection(unittest.TestCase):
     def test_str(self):
         cells = [Cell(value) for value in range(1, Sudoku.SIZE2 + 1)]
         section = Section(cells)
-        self.assertEqual("123\n"
-                         "456\n"
-                         "789", str(section))
+        expected = []
+        expected.append("123")
+        expected.append("456")
+        expected.append("789")
+        expected = "\n".join(expected)
+        self.assertEqual(expected, str(section))
 
     def test_weakref(self):
         cells = [Cell(value) for value in range(1, Sudoku.SIZE2 + 1)]

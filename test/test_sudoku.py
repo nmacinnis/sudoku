@@ -108,7 +108,7 @@ class TestGames(unittest.TestCase):
         assert table.solved()
         table.validate()
 
-        self.assertEquals(
+        self.assertEqual(
             '726|531|489\n'
             '918|462|735\n'
             '345|897|162\n'
@@ -144,7 +144,7 @@ class TestGames(unittest.TestCase):
         assert table.solved()
         table.validate()
 
-        self.assertEquals(
+        self.assertEqual(
             '468|923|517\n'
             '975|416|382\n'
             '312|785|496\n'
@@ -353,7 +353,7 @@ class TestTable(unittest.TestCase):
             "...|...|...\n" \
             "...|...|..."
         res = str(Table())
-        self.assertEquals(exp, res)
+        self.assertEqual(exp, res)
 
     def test_rows(self):
         table = Table()
@@ -382,7 +382,7 @@ class TestTable(unittest.TestCase):
 
     def test_default_potential_values(self):
         table = Table()
-        potential_values = range(1, Sudoku.SIZE2 + 1)
+        potential_values = list(range(1, Sudoku.SIZE2 + 1))
         row = table.rows[0]
         for cell in row:
             assert potential_values == cell.potential_values
@@ -395,24 +395,24 @@ class TestTable(unittest.TestCase):
 
     def test_set_0_0(self):
         table = Table()
-        potential_values = range(1, Sudoku.SIZE2 + 1)
+        potential_values = list(range(1, Sudoku.SIZE2 + 1))
 
         table.set(0, 0, 1)
         assert table[0][0].value == 1
         potential_values.remove(1)
         row = table.rows[0]
         for cell in row[1:]:
-            self.assertEquals(potential_values, cell.potential_values)
+            self.assertEqual(potential_values, cell.potential_values)
         column = table.columns[0]
         for cell in column[1:]:
-            self.assertEquals(potential_values, cell.potential_values)
+            self.assertEqual(potential_values, cell.potential_values)
         section = table.sections[0]
         for cell in section[1:]:
-            self.assertEquals(potential_values, cell.potential_values)
+            self.assertEqual(potential_values, cell.potential_values)
 
     def test_set_1_1(self):
         table = Table()
-        potential_values = range(1, Sudoku.SIZE2 + 1)
+        potential_values = list(range(1, Sudoku.SIZE2 + 1))
 
         table.set(1, 1, 1)
         set_cell = table[1][1]
@@ -421,15 +421,15 @@ class TestTable(unittest.TestCase):
         row = table.rows[1]
         for cell in row:
             if cell is not set_cell:
-                self.assertEquals(potential_values, cell.potential_values)
+                self.assertEqual(potential_values, cell.potential_values)
         column = table.columns[1]
         for cell in column:
             if cell is not set_cell:
-                self.assertEquals(potential_values, cell.potential_values)
+                self.assertEqual(potential_values, cell.potential_values)
         section = table.sections[0]
         for cell in section:
             if cell is not set_cell:
-                self.assertEquals(potential_values, cell.potential_values)
+                self.assertEqual(potential_values, cell.potential_values)
 
     def test_set_0_1_1_1(self):
         table = Table()
@@ -445,27 +445,27 @@ class TestTable(unittest.TestCase):
         section_0 = table.sections[0]
         for cell in section_0:
             if cell not in set_cells:
-                self.assertEquals(
+                self.assertEqual(
                     potential_values_section_0, cell.potential_values)
         row_0 = table.rows[0]
         for cell in row_0:
             if cell not in set_cells and cell not in section_0:
-                self.assertEquals(
+                self.assertEqual(
                     potential_values_row_0_column_0, cell.potential_values)
         column_0 = table.columns[0]
         for cell in column_0:
             if cell not in set_cells and cell not in section_0:
-                self.assertEquals(
+                self.assertEqual(
                     potential_values_row_0_column_0, cell.potential_values)
         row_1 = table.rows[1]
         for cell in row_1:
             if cell not in set_cells and cell not in section_0:
-                self.assertEquals(
+                self.assertEqual(
                     potential_values_row_1_column_1, cell.potential_values)
         column_1 = table.columns[1]
         for cell in column_1:
             if cell not in set_cells and cell not in section_0:
-                self.assertEquals(
+                self.assertEqual(
                     potential_values_row_1_column_1, cell.potential_values)
 
     def test_solve_section_0(self):
@@ -479,19 +479,19 @@ class TestTable(unittest.TestCase):
         table.set(2, 0, 7)
         table.set(2, 1, 8)
 
-        self.assertEquals(9, table[2][2].value)
+        self.assertEqual(9, table[2][2].value)
 
 
 class TestRegion(unittest.TestCase):
     def test_region_solved(self):
-        cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
+        cells = [Cell(value) for value in range(1, Sudoku.SIZE2 + 1)]
 
         region = Region(cells)
 
         assert region.solved()
 
     def test_region_not_solved(self):
-        cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2)]
+        cells = [Cell(value) for value in range(1, Sudoku.SIZE2)]
         cells.append(Cell())
 
         region = Region(cells)
@@ -499,15 +499,15 @@ class TestRegion(unittest.TestCase):
         assert not region.solved()
 
     def test_str_solved(self):
-        cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
+        cells = [Cell(value) for value in range(1, Sudoku.SIZE2 + 1)]
         region = Region(cells)
-        self.assertEquals('123456789', str(region))
+        self.assertEqual('123456789', str(region))
 
     def test_str_unsolved(self):
-        cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2)]
+        cells = [Cell(value) for value in range(1, Sudoku.SIZE2)]
         cells.append(Cell())
         region = Region(cells)
-        self.assertEquals('12345678.', str(region))
+        self.assertEqual('12345678.', str(region))
 
     def test_find_candidate_subregions(self):
         table = _string_to_table(
@@ -526,7 +526,7 @@ class TestRegion(unittest.TestCase):
 
         _logger.info("\n%s\n", str(table))
         for cell in table.rows[2][1:2]:
-            self.assertEquals([8, 9], cell.potential_values)
+            self.assertEqual([8, 9], cell.potential_values)
 
         for cell in table.rows[2][3:]:
             assert 8 not in cell.potential_values
@@ -540,14 +540,14 @@ class TestCell(unittest.TestCase):
 
     def test_cell_clear_potential_value(self):
         cell = Cell()
-        for i in xrange(1, Sudoku.SIZE2):
+        for i in range(1, Sudoku.SIZE2):
             cell.clear_potential_value(i)
         assert cell.potential_values == [9]
 
     def test_display_potential_values_default(self):
         cell = Cell()
         result = cell.display_potential_values()
-        self.assertEquals('123\n'
+        self.assertEqual('123\n'
                           '456\n'
                           '789', result)
         _logger.info('\n%s\n', result)
@@ -558,7 +558,7 @@ class TestCell(unittest.TestCase):
         cell.clear_potential_value(5)
         cell.clear_potential_value(9)
         result = cell.display_potential_values()
-        self.assertEquals(' 23\n'
+        self.assertEqual(' 23\n'
                           '4 6\n'
                           '78 ', result)
         _logger.info('\n%s\n', result)
@@ -567,7 +567,7 @@ class TestCell(unittest.TestCase):
         cell = Cell()
         cell.value = 5
         result = cell.display_potential_values()
-        self.assertEquals('   \n'
+        self.assertEqual('   \n'
                           '   \n'
                           '   ', result)
         _logger.info('\n%s\n', result)
@@ -575,12 +575,12 @@ class TestCell(unittest.TestCase):
 
 class TestRow(unittest.TestCase):
     def test_str(self):
-        cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
+        cells = [Cell(value) for value in range(1, Sudoku.SIZE2 + 1)]
         row = Row(cells)
-        self.assertEquals('123456789', str(row))
+        self.assertEqual('123456789', str(row))
 
     def test_weakref(self):
-        cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
+        cells = [Cell(value) for value in range(1, Sudoku.SIZE2 + 1)]
         row = Row(cells)
         assert cells[0].row is row
         del row
@@ -589,12 +589,12 @@ class TestRow(unittest.TestCase):
 
 class TestColumn(unittest.TestCase):
     def test_str(self):
-        cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
+        cells = [Cell(value) for value in range(1, Sudoku.SIZE2 + 1)]
         column = Column(cells)
-        self.assertEquals('1\n2\n3\n4\n5\n6\n7\n8\n9', str(column))
+        self.assertEqual('1\n2\n3\n4\n5\n6\n7\n8\n9', str(column))
 
     def test_weakref(self):
-        cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
+        cells = [Cell(value) for value in range(1, Sudoku.SIZE2 + 1)]
         column = Column(cells)
         assert cells[0].column is column
         del column
@@ -603,12 +603,12 @@ class TestColumn(unittest.TestCase):
 
 class TestSection(unittest.TestCase):
     def test_str(self):
-        cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
+        cells = [Cell(value) for value in range(1, Sudoku.SIZE2 + 1)]
         section = Section(cells)
-        self.assertEquals('123\n456\n789', str(section))
+        self.assertEqual('123\n456\n789', str(section))
 
     def test_weakref(self):
-        cells = [Cell(value) for value in xrange(1, Sudoku.SIZE2 + 1)]
+        cells = [Cell(value) for value in range(1, Sudoku.SIZE2 + 1)]
         section = Section(cells)
         assert cells[0].section is section
         del section

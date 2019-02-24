@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 from __future__ import print_function
+from builtins import object
 import logging
 import weakref
 
@@ -13,7 +14,7 @@ logging.basicConfig()
 def _split(l):
     return [
         l[x * Sudoku.SIZE: (x + 1) * Sudoku.SIZE]
-        for x in xrange(Sudoku.SIZE)
+        for x in range(Sudoku.SIZE)
     ]
 
 
@@ -36,32 +37,32 @@ class Sudoku(object):
 
     @classmethod
     def digits(cls):
-        return range(Sudoku.MIN, Sudoku.SIZE2 + Sudoku.MIN)
+        return list(range(Sudoku.MIN, Sudoku.SIZE2 + Sudoku.MIN))
 
 
 class Table(object):
     def __init__(self, cells=None):
         self.cells = cells or [
-            [Cell() for _ in xrange(Sudoku.SIZE2)]
-            for __ in xrange(Sudoku.SIZE2)
+            [Cell() for _ in range(Sudoku.SIZE2)]
+            for __ in range(Sudoku.SIZE2)
         ]
         self.rows = [Row(cells=row) for row in self.cells]
 
-        _columns = [[None for _ in xrange(Sudoku.SIZE2)]
-                    for _ in xrange(Sudoku.SIZE2)]
-        for i in xrange(Sudoku.SIZE2):
-            for j in xrange(Sudoku.SIZE2):
+        _columns = [[None for _ in range(Sudoku.SIZE2)]
+                    for _ in range(Sudoku.SIZE2)]
+        for i in range(Sudoku.SIZE2):
+            for j in range(Sudoku.SIZE2):
                 _columns[i][j] = self.cells[j][i]
-        self.columns = [Column(cells=_columns[i]) for i in xrange(
+        self.columns = [Column(cells=_columns[i]) for i in range(
             Sudoku.SIZE2)]
 
-        _sections = [[] for _ in xrange(Sudoku.SIZE2)]
-        for i in xrange(Sudoku.SIZE2):
-            for j in xrange(Sudoku.SIZE2):
-                _sections[((i / Sudoku.SIZE) * Sudoku.SIZE)
-                          + (j / Sudoku.SIZE)].append(self.cells[i][j])
+        _sections = [[] for _ in range(Sudoku.SIZE2)]
+        for i in range(Sudoku.SIZE2):
+            for j in range(Sudoku.SIZE2):
+                _sections[((i // Sudoku.SIZE) * Sudoku.SIZE)
+                          + (j // Sudoku.SIZE)].append(self.cells[i][j])
         self.sections = [Section(cells=_sections[i])
-                         for i in xrange(Sudoku.SIZE2)]
+                         for i in range(Sudoku.SIZE2)]
 
         self.regions = self.rows + self.columns + self.sections
 
@@ -93,7 +94,7 @@ class Table(object):
     def __getitem__(self, index):
         return self.cells[index]
 
-    def __nonzero__(self):
+    def __bool__(self):
         return all(self)
 
     def index(self, cell):
@@ -223,8 +224,8 @@ class Table(object):
             raise Exception("We've gone too deep.")
         _logger.info("Starting brute force search. Level=%s", level)
         # find an unsolved cell
-        unsolved_row = filter(lambda row: not row.solved(), self.rows)[0]
-        cell = filter(lambda cell: cell.value is None, unsolved_row)[0]
+        unsolved_row = [row for row in self.rows if not row.solved()][0]
+        cell = [cell for cell in unsolved_row if cell.value is None][0]
         for potential_value in cell.potential_values:
             new_table = self.copy()
             try:
@@ -261,7 +262,7 @@ class Table(object):
 
 class Region(object):
     def __init__(self, cells=None):
-        self.cells = cells or [Cell() for cell in xrange(Sudoku.SIZE2)]
+        self.cells = cells or [Cell() for cell in range(Sudoku.SIZE2)]
         self.free_digits = Sudoku.digits()
 
     def __str__(self):
@@ -281,7 +282,7 @@ class Region(object):
             raise TypeError('can only set integer values')
         self.cells[index].value = value
 
-    def __nonzero__(self):
+    def __bool__(self):
         return all(self)
 
     def index(self, cell):
@@ -302,7 +303,7 @@ class Region(object):
         pass
 
     def candidates(self, value):
-        return filter(lambda cell: value in cell.potential_values, self.cells)
+        return [cell for cell in self.cells if value in cell.potential_values]
 
     def find_single_candidates(self, values=None):
         if values is None:
@@ -383,10 +384,7 @@ class Region(object):
             for subregion in self.subregions():
                 subregions_by_type[type(subregion)].append(subregion)
             for _type, subregions in subregions_by_type.items():
-                candidate_subregions = filter(
-                    lambda subregion: len(subregion.candidates(value)) > 0,
-                    subregions
-                )
+                candidate_subregions = [subregion for subregion in subregions if len(subregion.candidates(value)) > 0]
                 if len(candidate_subregions) == 1:
                     if self.restrict_value_to_subregion(
                             value, candidate_subregions[0]):
@@ -411,7 +409,7 @@ class Region(object):
 class Subregion(Region):
     def __init__(self, cells=None):
         super(Subregion, self).__init__(
-            cells=(cells or [Cell() for cell in xrange(Sudoku.SIZE)]))
+            cells=(cells or [Cell() for cell in range(Sudoku.SIZE)]))
 
     def __repr__(self):
         return 'Subregion(cells=%s)' % repr(self.cells)
@@ -576,7 +574,7 @@ class Cell(object):
     def __repr__(self):
         return 'Cell(value=%s, potential_values=%s)' % (self._value, self.potential_values)
 
-    def __nonzero__(self):
+    def __bool__(self):
         return self._value is not None
 
     def index(self):
@@ -609,7 +607,7 @@ class Cell(object):
         self.potential_values.remove(value)
 
     def regions(self):
-        return filter(lambda region: region is not None, [self.row, self.column, self.section])
+        return [region for region in [self.row, self.column, self.section] if region is not None]
 
     @property
     def row(self):

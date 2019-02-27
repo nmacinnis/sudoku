@@ -4,10 +4,12 @@ from sudoku import Sudoku, Cell, Region, Row, Column, Section, Table, _logger
 
 
 def _string_to_table(st):
+    st = st.replace(" ", "")
     st = st.replace("|", "")
     st = st.replace("-", "")
     st = st.replace("+", "")
     st = st.replace("\n\n", "\n")
+    st = st.strip()
     table = Table()
     lines = st.split("\n")
     for i, line in enumerate(lines):
@@ -31,7 +33,7 @@ def _string_to_table(st):
                     _logger.exception(
                         "Something bad happened when building the provided table"
                     )
-                    _logger.info("Table was:\n%s\n", table)
+                    _logger.warning("Table was:\n%s\n", table)
                     raise
     return table
 
@@ -39,34 +41,38 @@ def _string_to_table(st):
 class TestGames(unittest.TestCase):
     def test_game_00(self):
         table = _string_to_table(
-            "...|...|...\n"
-            "...|...|...\n"
-            "...|...|...\n"
-            "---+---+---\n"
-            "...|...|...\n"
-            "...|...|...\n"
-            "...|...|...\n"
-            "---+---+---\n"
-            "...|...|...\n"
-            "...|...|...\n"
-            "...|...|..."
+            """
+            ...|...|...
+            ...|...|...
+            ...|...|...
+            ---+---+---
+            ...|...|...
+            ...|...|...
+            ...|...|...
+            ---+---+---
+            ...|...|...
+            ...|...|...
+            ...|...|...
+        """
         )
 
         assert not table.solved()
 
     def test_game_01(self):
         table = _string_to_table(
-            "3.6|..7|2..\n"
-            "...|39.|...\n"
-            ".28|...|4.7\n"
-            "---+---+---\n"
-            "..1|4.5|.26\n"
-            "..2|.8.|7..\n"
-            "54.|6.9|3..\n"
-            "---+---+---\n"
-            "7.9|...|68.\n"
-            "...|.36|...\n"
-            "..3|7..|1.4"
+            """
+            3.6|..7|2..
+            ...|39.|...
+            .28|...|4.7
+            ---+---+---
+            ..1|4.5|.26
+            ..2|.8.|7..
+            54.|6.9|3..
+            ---+---+---
+            7.9|...|68.
+            ...|.36|...
+            ..3|7..|1.4
+        """
         )
 
         _logger.info("\n%s\n", table)
@@ -75,17 +81,19 @@ class TestGames(unittest.TestCase):
 
     def test_game_02(self):
         table = _string_to_table(
-            "..3|9..|...\n"
-            ".9.|78.|.4.\n"
-            "...|.41|..5\n"
-            "---+---+---\n"
-            "..6|...|.51\n"
-            ".35|...|72.\n"
-            "72.|...|3..\n"
-            "---+---+---\n"
-            "3..|82.|...\n"
-            ".4.|.63|.8.\n"
-            "...|..9|6.."
+            """
+            ..3|9..|...
+            .9.|78.|.4.
+            ...|.41|..5
+            ---+---+---
+            ..6|...|.51
+            .35|...|72.
+            72.|...|3..
+            ---+---+---
+            3..|82.|...
+            .4.|.63|.8.
+            ...|..9|6..
+        """
         )
 
         _logger.info("\n%s\n", table)
@@ -94,17 +102,19 @@ class TestGames(unittest.TestCase):
 
     def test_game_03(self):
         table = _string_to_table(
-            "7..|.3.|.8.\n"
-            ".18|...|7..\n"
-            "3..|...|..2\n"
-            "---+---+---\n"
-            "...|38.|5..\n"
-            "..2|9.5|8..\n"
-            "..4|.76|...\n"
-            "---+---+---\n"
-            "8..|...|..4\n"
-            "..1|...|69.\n"
-            ".9.|.5.|..1"
+            """
+            7..|.3.|.8.
+            .18|...|7..
+            3..|...|..2
+            ---+---+---
+            ...|38.|5..
+            ..2|9.5|8..
+            ..4|.76|...
+            ---+---+---
+            8..|...|..4
+            ..1|...|69.
+            .9.|.5.|..1
+        """
         )
 
         _logger.info("\n%s\n", table)
@@ -128,17 +138,19 @@ class TestGames(unittest.TestCase):
 
     def test_game_04(self):
         table = _string_to_table(
-            "..8|...|5..\n"
-            ".7.|4.6|.8.\n"
-            "3..|...|..6\n"
-            "---+---+---\n"
-            "..4|8.2|7..\n"
-            "5..|...|..3\n"
-            "..1|5.4|2..\n"
-            "---+---+---\n"
-            "1..|...|..5\n"
-            ".5.|3.9|.2.\n"
-            "..6|...|9.."
+            """
+            ..8|...|5..
+            .7.|4.6|.8.
+            3..|...|..6
+            ---+---+---
+            ..4|8.2|7..
+            5..|...|..3
+            ..1|5.4|2..
+            ---+---+---
+            1..|...|..5
+            .5.|3.9|.2.
+            ..6|...|9..
+        """
         )
 
         table.really_solve()
@@ -164,17 +176,19 @@ class TestGames(unittest.TestCase):
 
     def test_game_05(self):
         table = _string_to_table(
-            "7.2|..1|4..\n"
-            "..8|..6|.3.\n"
-            ".1.|...|..9\n"
-            "---+---+---\n"
-            "...|.12|.5.\n"
-            ".2.|...|.7.\n"
-            ".4.|57.|...\n"
-            "---+---+---\n"
-            "3..|...|.2.\n"
-            ".7.|6..|5..\n"
-            "..5|3..|6.8"
+            """
+            7.2|..1|4..
+            ..8|..6|.3.
+            .1.|...|..9
+            ---+---+---
+            ...|.12|.5.
+            .2.|...|.7.
+            .4.|57.|...
+            ---+---+---
+            3..|...|.2.
+            .7.|6..|5..
+            ..5|3..|6.8
+        """
         )
 
         table.solve()
@@ -185,17 +199,19 @@ class TestGames(unittest.TestCase):
 
     def test_game_06(self):
         table = _string_to_table(
-            "85.|..2|4..\n"
-            "72.|...|..9\n"
-            "..4|...|...\n"
-            "---+---+---\n"
-            "...|1.7|..2\n"
-            "3.5|...|9..\n"
-            ".4.|...|...\n"
-            "---+---+---\n"
-            "...|.8.|.7.\n"
-            ".17|...|...\n"
-            "...|.36|.4."
+            """
+            85.|..2|4..
+            72.|...|..9
+            ..4|...|...
+            ---+---+---
+            ...|1.7|..2
+            3.5|...|9..
+            .4.|...|...
+            ---+---+---
+            ...|.8.|.7.
+            .17|...|...
+            ...|.36|.4.
+        """
         )
         # supposedly this one is hard
 
@@ -207,17 +223,19 @@ class TestGames(unittest.TestCase):
 
     def test_game_07(self):
         table = _string_to_table(
-            "..5|3..|...\n"
-            "8..|...|.2.\n"
-            ".7.|.1.|5..\n"
-            "---+---+---\n"
-            "4..|..5|3..\n"
-            ".1.|.7.|..6\n"
-            "..3|2..|.8.\n"
-            "---+---+---\n"
-            ".6.|5..|..9\n"
-            "..4|...|.3.\n"
-            "...|..9|7.."
+            """
+            ..5|3..|...
+            8..|...|.2.
+            .7.|.1.|5..
+            ---+---+---
+            4..|..5|3..
+            .1.|.7.|..6
+            ..3|2..|.8.
+            ---+---+---
+            .6.|5..|..9
+            ..4|...|.3.
+            ...|..9|7..
+        """
         )
         # supposedly this one is hard too
 
@@ -247,25 +265,27 @@ class Test4x4(unittest.TestCase):
 
     def test_4x4_game_01(self):
         table = _string_to_table(
-            "b.78|.5e.|3..a|d.c0\n"
-            "..4.|.7..|.c.f|a..2\n"
-            "a...|....|...4|37..\n"
-            "..5.|..9f|....|...8\n"
-            "----+----+----+----\n"
-            ".4..|b8..|.e.7|93..\n"
-            "..e3|7c..|..fd|b..4\n"
-            "9f.7|..5d|.3..|..8.\n"
-            "5..d|.f3.|24a8|c.0.\n"
-            "----+----+----+----\n"
-            ".8..|....|b...|.0d5\n"
-            "..d.|....|.8..|f.e.\n"
-            "..a.|9.f.|.67.|..bc\n"
-            "...c|.ab.|...e|724.\n"
-            "----+----+----+----\n"
-            "7a.9|.b1.|..5.|.63.\n"
-            "d.ce|f.7.|a...|.8..\n"
-            "....|e.a.|.d..|5...\n"
-            ".635|09c.|.b..|e..."
+            """
+            b.78|.5e.|3..a|d.c0
+            ..4.|.7..|.c.f|a..2
+            a...|....|...4|37..
+            ..5.|..9f|....|...8
+            ----+----+----+----
+            .4..|b8..|.e.7|93..
+            ..e3|7c..|..fd|b..4
+            9f.7|..5d|.3..|..8.
+            5..d|.f3.|24a8|c.0.
+            ----+----+----+----
+            .8..|....|b...|.0d5
+            ..d.|....|.8..|f.e.
+            ..a.|9.f.|.67.|..bc
+            ...c|.ab.|...e|724.
+            ----+----+----+----
+            7a.9|.b1.|..5.|.63.
+            d.ce|f.7.|a...|.8..
+            ....|e.a.|.d..|5...
+            .635|09c.|.b..|e...
+        """
         )
         _logger.info("\n%s\n", table)
 
@@ -302,39 +322,41 @@ class Test2x2(unittest.TestCase):
         Sudoku.SIZE2 = 9
 
     def test_2x2_game_00(self):
-        table = []
-        table.append("..|..")
-        table.append("..|..")
-        table.append("--+--")
-        table.append("..|..")
-        table.append("..|..")
-        table = "\n".join(table)
-        table = _string_to_table(table)
+        table = _string_to_table(
+            """
+            ..|..
+            ..|..
+            --+--
+            ..|..
+            ..|..
+        """
+        )
         _logger.info("\n%s\n", table)
         assert not table.solved()
 
     def test_2x2_game_01(self):
-        table = []
-        table.append("12|3.")
-        table.append("3.|1.")
-        table.append("--+--")
-        table.append("2.|..")
-        table.append("..|.3")
-        table = "\n".join(table)
-        table = _string_to_table(table)
+        table = _string_to_table(
+            """
+            12|3.
+            3.|1.
+            --+--
+            2.|..
+            ..|.3
+        """
+        )
         _logger.info("\n%s\n", table)
         assert table.solved()
 
     def test_brute_force(self):
-        table = []
-        table.append("12|3.")
-        table.append("3.|1.")
-        table.append("--+--")
-        table.append("2.|..")
-        table.append("..|..")
-        table = "\n".join(table)
-        table = _string_to_table(table)
-
+        table = _string_to_table(
+            """
+            12|3.
+            3.|1.
+            --+--
+            2.|..
+            ..|..
+        """
+        )
         table.really_solve()
 
         _logger.info("\n%s\n", table)
@@ -511,17 +533,19 @@ class TestRegion(unittest.TestCase):
 
     def test_find_candidate_subregions(self):
         table = _string_to_table(
-            "123|...|...\n"
-            "456|...|...\n"
-            "7..|...|...\n"
-            "---+---+---\n"
-            "...|...|...\n"
-            "...|...|...\n"
-            "...|...|...\n"
-            "---+---+---\n"
-            "...|...|...\n"
-            "...|...|...\n"
-            "...|...|..."
+            """
+            123|...|...
+            456|...|...
+            7..|...|...
+            ---+---+---
+            ...|...|...
+            ...|...|...
+            ...|...|...
+            ---+---+---
+            ...|...|...
+            ...|...|...
+            ...|...|...
+        """
         )
 
         _logger.info("\n%s\n", table)
@@ -599,12 +623,7 @@ class TestSection(unittest.TestCase):
     def test_str(self):
         cells = [Cell(value) for value in range(1, Sudoku.SIZE2 + 1)]
         section = Section(cells)
-        expected = []
-        expected.append("123")
-        expected.append("456")
-        expected.append("789")
-        expected = "\n".join(expected)
-        self.assertEqual(expected, str(section))
+        self.assertEqual("123\n456\n789", str(section))
 
     def test_weakref(self):
         cells = [Cell(value) for value in range(1, Sudoku.SIZE2 + 1)]

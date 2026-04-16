@@ -601,9 +601,9 @@ class Cell:
         return self._value is not None
 
     def index(self):
-        col = self.column.index(self) if self.column is not None else None
-        row = self.row.index(self) if self.row is not None else None
-        return col, row
+        row = self.column.index(self) if self.column is not None else None
+        col = self.row.index(self) if self.row is not None else None
+        return row, col
 
     @property
     def value(self):

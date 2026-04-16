@@ -720,17 +720,47 @@ class Cell:
 
 
 if __name__ == "__main__":
-    cell = Cell()
-    print("cell", cell)
-    row = Row()
-    print("row", row)
-    column = Column()
-    print("column\n", column)
-    section = Section()
-    print("section\n", section)
+    import argparse
+    import sys
+
+    parser = argparse.ArgumentParser(description="Solve a Sudoku puzzle.")
+    parser.add_argument(
+        "puzzle",
+        help="81-character puzzle string (1-9 for given digits, . for empty cells)",
+    )
+    args = parser.parse_args()
+
+    expected_length = Sudoku.SIZE2 ** 2
+    if len(args.puzzle) != expected_length:
+        print(
+            "Error: puzzle must be %d characters, got %d"
+            % (expected_length, len(args.puzzle)),
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    raw_rows = [args.puzzle[r * Sudoku.SIZE2:(r + 1) * Sudoku.SIZE2] for r in range(Sudoku.SIZE2)]
+    row_divider = "\n" + "+".join(["-" * Sudoku.SIZE] * Sudoku.SIZE) + "\n"
+    puzzle_display = row_divider.join(
+        "\n".join("|".join([row[c * Sudoku.SIZE:(c + 1) * Sudoku.SIZE] for c in range(Sudoku.SIZE)]) for row in section)
+        for section in [raw_rows[s * Sudoku.SIZE:(s + 1) * Sudoku.SIZE] for s in range(Sudoku.SIZE)]
+    )
+
     table = Table()
-    print("table\n", table)
-    subrow = Subrow()
-    print("subrow", subrow)
-    subcolumn = Subcolumn()
-    print("subcolumn\n", subcolumn)
+    for i, char in enumerate(args.puzzle):
+        if char != ".":
+            row, col = divmod(i, Sudoku.SIZE2)
+            table.set(row, col, int(char, 16))
+
+    print("Puzzle:")
+    print(puzzle_display)
+    print()
+
+    table.really_solve()
+
+    if table.solved():
+        print("Solution:")
+        print(table)
+    else:
+        print("Could not solve puzzle.", file=sys.stderr)
+        sys.exit(1)

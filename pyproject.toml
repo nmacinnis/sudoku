@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "sudoku"
+version = "0.1.0"
+requires-python = ">=3.10"
+
+[tool.setuptools]
+py-modules = ["sudoku"]
+package-dir = {"" = "lib"}
+
+[tool.pytest.ini_options]
+testpaths = ["test"]

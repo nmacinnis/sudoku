@@ -527,9 +527,6 @@ class Subcolumn(Subregion, AbstractColumn):
     def __repr__(self):
         return "Subcolumn(cells=%s)" % repr(self.cells)
 
-    def parent_column(self):
-        raise NotImplementedError
-
     @property
     def column(self):
         return self._column_ref()

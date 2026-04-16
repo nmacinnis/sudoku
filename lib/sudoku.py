@@ -337,7 +337,7 @@ class Region:
         for value, candidate_cells in value_candidacy.items():
             # there are n cells i can be in
             # are there n other values that must be inside those cells?
-            values_that_must_be_in_those_cells = set()
+            values_that_must_be_in_those_cells = {value}
             cells_those_values_must_be_in = set(candidate_cells)
             for candidate_cell in candidate_cells:
                 for potential_value in candidate_cell.potential_values:
@@ -364,7 +364,7 @@ class Region:
     def restrict_values_to_cells(self, values, cells):
         did_something = False
         for cell in cells:
-            for potential_value in cell.potential_values:
+            for potential_value in list(cell.potential_values):
                 if potential_value not in values:
                     _logger.debug(
                         "Clearing possible value %s from %s due to codependency (must be in %s)",

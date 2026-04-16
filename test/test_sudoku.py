@@ -490,6 +490,24 @@ class TestTable(unittest.TestCase):
             if cell not in set_cells and cell not in section_0:
                 self.assertEqual(potential_values_row_1_column_1, cell.potential_values)
 
+    def test_copy_free_digits(self):
+        table = Table()
+        table.set(0, 0, 1)
+        table.set(0, 1, 2)
+        table.set(0, 2, 3)
+        copy = table.copy()
+        # row 0 has 1,2,3 placed — free_digits must not include them
+        self.assertNotIn(1, copy.rows[0].free_digits)
+        self.assertNotIn(2, copy.rows[0].free_digits)
+        self.assertNotIn(3, copy.rows[0].free_digits)
+        # column 0 has 1 placed
+        self.assertNotIn(1, copy.columns[0].free_digits)
+        self.assertIn(2, copy.columns[0].free_digits)
+        # section 0 has 1,2,3 placed
+        self.assertNotIn(1, copy.sections[0].free_digits)
+        self.assertNotIn(2, copy.sections[0].free_digits)
+        self.assertNotIn(3, copy.sections[0].free_digits)
+
     def test_solve_section_0(self):
         table = Table()
         table.set(0, 0, 1)

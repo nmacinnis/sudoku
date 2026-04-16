@@ -115,7 +115,11 @@ class Table:
                     new_cell.value = cell.value
                 new_cell.potential_values = list(cell.potential_values)
                 new_row.append(new_cell)
-        return Table(cells=new_rows)
+        new_table = Table(cells=new_rows)
+        for region in new_table.regions:
+            placed = {cell.value for cell in region.cells if cell.value is not None}
+            region.free_digits = [d for d in Sudoku.digits() if d not in placed]
+        return new_table
 
     def copy_from(self, other_table):
         for r, row in enumerate(self.rows):

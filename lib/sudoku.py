@@ -3,6 +3,7 @@ import logging
 import weakref
 
 from collections import defaultdict
+from itertools import combinations
 
 
 _logger = logging.getLogger(__name__)
@@ -214,7 +215,13 @@ class Table:
                 # made progress, keep going
                 pass
             else:
-                return
+                # greedy naked set detection stalled; try exhaustive subset search
+                exhaustive_cleared = False
+                for region in self.regions:
+                    if region.find_and_restrict_dependent_cell_sets_exhaustive():
+                        exhaustive_cleared = True
+                if not exhaustive_cleared:
+                    return
 
     def really_solve(self):
         self.solve()
@@ -325,6 +332,28 @@ class Region:
         for values, cells in codependency_sets.items():
             result = self.restrict_values_to_cells(values, cells)
             if result:
+                cleared_something = True
+        return cleared_something
+
+    def identify_dependent_cell_sets_exhaustive(self):
+        results = {}
+        value_candidacy = {
+            value: frozenset(self.candidates(value)) for value in self.free_digits
+        }
+        for size in range(2, len(self.free_digits)):
+            for value_subset in combinations(self.free_digits, size):
+                candidate_cells = frozenset(
+                    cell for v in value_subset for cell in value_candidacy[v]
+                )
+                if len(candidate_cells) == size:
+                    results[value_subset] = candidate_cells
+        return results
+
+    def find_and_restrict_dependent_cell_sets_exhaustive(self):
+        codependency_sets = self.identify_dependent_cell_sets_exhaustive()
+        cleared_something = False
+        for values, cells in codependency_sets.items():
+            if self.restrict_values_to_cells(values, cells):
                 cleared_something = True
         return cleared_something
 

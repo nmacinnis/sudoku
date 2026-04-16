@@ -1,6 +1,4 @@
-#! /usr/bin/env python
-from __future__ import print_function
-from builtins import object
+#!/usr/bin/env python3
 import logging
 import weakref
 
@@ -17,13 +15,13 @@ def _split(l):
 
 class SudokuLogicException(Exception):
     def __init__(self, cell, value):
-        super(SudokuLogicException, self).__init__(
+        super().__init__(
             "Exception when attempting to set %s with value %s and possible values %s to %s"
             % (cell.index(), cell.value, cell.potential_values, value)
         )
 
 
-class Sudoku(object):
+class Sudoku:
     SIZE = 3
     SIZE2 = 9
     MIN = 1
@@ -33,7 +31,7 @@ class Sudoku(object):
         return list(range(Sudoku.MIN, Sudoku.SIZE2 + Sudoku.MIN))
 
 
-class Table(object):
+class Table:
     def __init__(self, cells=None):
         self.cells = cells or [
             [Cell() for _ in range(Sudoku.SIZE2)] for __ in range(Sudoku.SIZE2)
@@ -262,7 +260,7 @@ class Table(object):
                 _logger.error("Error was: %s", str(e))
 
 
-class Region(object):
+class Region:
     def __init__(self, cells=None):
         self.cells = cells or [Cell() for cell in range(Sudoku.SIZE2)]
         self.free_digits = Sudoku.digits()
@@ -428,7 +426,7 @@ class Region(object):
 
 class Subregion(Region):
     def __init__(self, cells=None):
-        super(Subregion, self).__init__(
+        super().__init__(
             cells=(cells or [Cell() for cell in range(Sudoku.SIZE)])
         )
 
@@ -441,12 +439,12 @@ class Subregion(Region):
 
 class AbstractRow(Region):
     def __init__(self, cells=None):
-        super(AbstractRow, self).__init__(cells=cells)
+        super().__init__(cells=cells)
 
 
 class Row(AbstractRow):
     def __init__(self, cells=None):
-        super(Row, self).__init__(cells=cells)
+        super().__init__(cells=cells)
         for cell in self.cells:
             cell.row = self
         self.subrows = [Subrow(cells=segment) for segment in _split(self.cells)]
@@ -462,7 +460,7 @@ class Row(AbstractRow):
 
 class Subrow(Subregion, AbstractRow):
     def __init__(self, cells=None):
-        super(Subrow, self).__init__(cells=cells)
+        super().__init__(cells=cells)
         for cell in self.cells:
             cell.subrow = self
         self._row_ref = lambda: None
@@ -493,7 +491,7 @@ class Subrow(Subregion, AbstractRow):
 
 class AbstractColumn(Region):
     def __init__(self, cells=None):
-        super(AbstractColumn, self).__init__(cells=cells)
+        super().__init__(cells=cells)
 
     def __str__(self):
         return "\n".join([str(cell) for cell in self])
@@ -501,7 +499,7 @@ class AbstractColumn(Region):
 
 class Column(AbstractColumn):
     def __init__(self, cells=None):
-        super(Column, self).__init__(cells=cells)
+        super().__init__(cells=cells)
         for cell in self.cells:
             cell.column = self
         self.subcolumns = [Subcolumn(cells=segment) for segment in _split(self.cells)]
@@ -517,7 +515,7 @@ class Column(AbstractColumn):
 
 class Subcolumn(Subregion, AbstractColumn):
     def __init__(self, cells=None):
-        super(Subcolumn, self).__init__(cells=cells)
+        super().__init__(cells=cells)
         for cell in self.cells:
             cell.subcolumn = self
         self._column_ref = lambda: None
@@ -553,7 +551,7 @@ class Subcolumn(Subregion, AbstractColumn):
 
 class Section(Region):
     def __init__(self, cells=None):
-        super(Section, self).__init__(cells=cells)
+        super().__init__(cells=cells)
         for cell in self.cells:
             cell.section = self
         self.subrows = list(
@@ -577,7 +575,7 @@ class Section(Region):
         return self.subrows + self.subcolumns
 
 
-class Cell(object):
+class Cell:
     def __init__(self, value=None, potential_values=None):
         self._value = value
         if value is not None:

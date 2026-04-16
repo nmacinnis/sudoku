@@ -248,12 +248,13 @@ class TestGames(unittest.TestCase):
 
 class Test4x4(unittest.TestCase):
     def setUp(self):
+        self.addCleanup(self._restore)
         Sudoku.SIZE = 4
         Sudoku.SIZE2 = 16
         Sudoku.MIN = 0
         Sudoku.MAX = 15
 
-    def tearDown(self):
+    def _restore(self):
         Sudoku.SIZE = 3
         Sudoku.SIZE2 = 9
         Sudoku.MIN = 1
@@ -295,10 +296,11 @@ class Test4x4(unittest.TestCase):
 
 class Test1x1(unittest.TestCase):
     def setUp(self):
+        self.addCleanup(self._restore)
         Sudoku.SIZE = 1
         Sudoku.SIZE2 = 1
 
-    def tearDown(self):
+    def _restore(self):
         Sudoku.SIZE = 3
         Sudoku.SIZE2 = 9
 
@@ -314,10 +316,11 @@ class Test1x1(unittest.TestCase):
 
 class Test2x2(unittest.TestCase):
     def setUp(self):
+        self.addCleanup(self._restore)
         Sudoku.SIZE = 2
         Sudoku.SIZE2 = 4
 
-    def tearDown(self):
+    def _restore(self):
         Sudoku.SIZE = 3
         Sudoku.SIZE2 = 9
 

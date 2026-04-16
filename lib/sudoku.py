@@ -224,7 +224,7 @@ class Table:
 
     def brute_force(self, level=0):
         if level > 10:
-            _logger.fatal("We've gone too deep.")
+            _logger.critical("We've gone too deep.")
             raise Exception("We've gone too deep.")
         _logger.info("Starting brute force search. Level=%s", level)
         # find an unsolved cell
@@ -554,14 +554,14 @@ class Section(Region):
         super().__init__(cells=cells)
         for cell in self.cells:
             cell.section = self
-        self.subrows = list(
-            set([cell.subrow for cell in self.cells if cell.subrow is not None])
-        )
+        self.subrows = list(dict.fromkeys(
+            cell.subrow for cell in self.cells if cell.subrow is not None
+        ))
         for subrow in self.subrows:
             subrow.section = self
-        self.subcolumns = list(
-            set([cell.subcolumn for cell in self.cells if cell.subcolumn is not None])
-        )
+        self.subcolumns = list(dict.fromkeys(
+            cell.subcolumn for cell in self.cells if cell.subcolumn is not None
+        ))
         for subcolumn in self.subcolumns:
             subcolumn.section = self
 

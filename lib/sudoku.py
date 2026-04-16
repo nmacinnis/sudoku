@@ -86,7 +86,7 @@ class Table:
         return self.cells[index]
 
     def __bool__(self):
-        return all(self)
+        return all(self.rows)
 
     def index(self, cell):
         row_index = self.rows.index(cell.row)

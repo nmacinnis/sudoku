@@ -258,6 +258,7 @@ class Test4x4(unittest.TestCase):
         Sudoku.SIZE = 3
         Sudoku.SIZE2 = 9
         Sudoku.MIN = 1
+        del Sudoku.MAX
 
     def test_4x4_game_00(self):
         table = Table()

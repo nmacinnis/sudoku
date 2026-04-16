@@ -5,8 +5,7 @@ import weakref
 from collections import defaultdict
 
 
-_logger = logging.getLogger()
-logging.basicConfig()
+_logger = logging.getLogger(__name__)
 
 
 def _split(l):
@@ -297,10 +296,10 @@ class Region:
         assert actual_values == required_values, actual_values
 
     def subregions(self):
-        pass
+        raise NotImplementedError
 
     def siblings(self):
-        pass
+        raise NotImplementedError
 
     def candidates(self, value):
         return [cell for cell in self.cells if value in cell.potential_values]
@@ -434,7 +433,7 @@ class Subregion(Region):
         return "Subregion(cells=%s)" % repr(self.cells)
 
     def siblings(self):
-        pass
+        raise NotImplementedError
 
 
 class AbstractRow(Region):
@@ -525,7 +524,7 @@ class Subcolumn(Subregion, AbstractColumn):
         return "Subcolumn(cells=%s)" % repr(self.cells)
 
     def parent_column(self):
-        pass
+        raise NotImplementedError
 
     @property
     def column(self):

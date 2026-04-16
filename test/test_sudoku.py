@@ -1,6 +1,6 @@
 import unittest
 
-from sudoku import Sudoku, Cell, Region, Row, Column, Section, Table, _logger
+from sudoku import Sudoku, Cell, Region, Row, Column, Section, Table, _logger, SudokuLogicException
 
 
 def _string_to_table(st):
@@ -560,7 +560,8 @@ class TestRegion(unittest.TestCase):
 class TestCell(unittest.TestCase):
     def test_cell_value_immutable(self):
         cell = Cell(value=1)
-        self.assertRaises(Exception, setattr, cell.value, 2)
+        with self.assertRaises(SudokuLogicException):
+            cell.value = 2
 
     def test_cell_clear_potential_value(self):
         cell = Cell()
